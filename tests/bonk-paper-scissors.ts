@@ -10,6 +10,7 @@ const encode = (str: string) => new TextEncoder().encode(str);
 const b = (input: TemplateStringsArray) => encode(input.join(""));
 
 const GAME_ID = "testgame";
+const SECOND_GAME_ID = "secondgame";
 
 const generateSalt = () => {
   const result = Uint8Array.from(randomBytes(32));
@@ -28,10 +29,11 @@ const generateHash = (salt: number[], move: 1 | 2 | 3) => {
 
 const getGamePDA = (
   firstPlayer: anchor.web3.PublicKey,
-  programId: anchor.web3.PublicKey
+  programId: anchor.web3.PublicKey,
+  gameId: string
 ) => {
   return anchor.web3.PublicKey.findProgramAddressSync(
-    [b`game`, firstPlayer.toBytes(), encode(GAME_ID)],
+    [b`game`, firstPlayer.toBytes(), encode(gameId)],
     programId
   );
 };
@@ -120,7 +122,7 @@ const mintTo = async (
   };
 };
 
-describe("bonk-paper-scissors", async () => {
+describe("bonk-paper-scissors: happy-path", async () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
@@ -169,7 +171,11 @@ describe("bonk-paper-scissors", async () => {
     ataTwo = mintToPlayerTwo.ata;
     // #endregion ----- SETUP ----- END
 
-    const getGamePDAResult = getGamePDA(playerOne.publicKey, program.programId);
+    const getGamePDAResult = getGamePDA(
+      playerOne.publicKey,
+      program.programId,
+      GAME_ID
+    );
     gamePDA = getGamePDAResult[0];
     const getEscrowPDAResult = getEscrowPDA(
       "first",
@@ -258,7 +264,7 @@ describe("bonk-paper-scissors", async () => {
     if (result === null) {
       throw new Error("Game account not found");
     }
-    console.log("result: ", result);
+    // console.log("result: ", result);
   });
 
   it("claim", async () => {
@@ -293,6 +299,194 @@ describe("bonk-paper-scissors", async () => {
     if (result === null) {
       throw new Error("Game account not found");
     }
-    console.log("result: ", result);
+    // console.log("result: ", result);
+  });
+});
+
+describe("bonk-paper-scissors: cancelled", () => {
+  anchor.setProvider(anchor.AnchorProvider.env());
+
+  const program = anchor.workspace
+    .BonkPaperScissors as Program<BonkPaperScissors>;
+
+  let tokenCreator: anchor.web3.Keypair;
+  let playerOne: anchor.web3.Keypair;
+  let mint: anchor.web3.PublicKey;
+  let ataOne: anchor.web3.PublicKey;
+  let escrowOne: anchor.web3.PublicKey;
+  let gamePDA: anchor.web3.PublicKey;
+  let playerOneSalt: number[];
+  let playerOneHash: number[];
+
+  it("stage: first_player_move", async () => {
+    // #region ----- SETUP -----
+    const results = await createAndFundAccounts(program);
+    tokenCreator = results.tokenCreator;
+    playerOne = results.playerOne;
+
+    const initializeMintResult = await initializeMint(program, tokenCreator);
+    mint = initializeMintResult;
+
+    const mintToPlayerOne = await mintTo(
+      program,
+      tokenCreator,
+      playerOne.publicKey,
+      mint,
+      10_000
+    );
+    ataOne = mintToPlayerOne.ata;
+    // #endregion ----- SETUP ----- END
+
+    const getGamePDAResult = getGamePDA(
+      playerOne.publicKey,
+      program.programId,
+      SECOND_GAME_ID
+    );
+    gamePDA = getGamePDAResult[0];
+    const getEscrowPDAResult = getEscrowPDA(
+      "first",
+      gamePDA,
+      program.programId
+    );
+    escrowOne = getEscrowPDAResult[0];
+
+    const salt = generateSalt();
+    playerOneSalt = [...salt];
+    const hash = generateHash([...salt], 1);
+    playerOneHash = [...hash];
+
+    const txId = await program.methods
+      .firstPlayerMove(SECOND_GAME_ID, new anchor.BN(1_000), playerOneHash)
+      .accountsStrict({
+        game: gamePDA,
+        firstPlayer: playerOne.publicKey,
+        firstPlayerEscrow: escrowOne,
+        firstPlayerTokenAccount: ataOne,
+        mint: mint,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        associatedTokenProgram: SPL.ASSOCIATED_TOKEN_PROGRAM_ID,
+        tokenProgram: SPL.TOKEN_PROGRAM_ID,
+      })
+      .signers([playerOne])
+      .rpc();
+    const result = await program.account.game.fetchNullable(gamePDA);
+    if (result === null) {
+      throw new Error("Game account not found");
+    }
+    console.log("txid: ", txId);
+  });
+
+  it("cancel", async () => {
+    const tx = await program.methods
+      .cancelGame(SECOND_GAME_ID)
+      .accountsStrict({
+        game: gamePDA,
+        firstPlayer: playerOne.publicKey,
+        firstPlayerEscrow: escrowOne,
+        firstPlayerTokenAccount: ataOne,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        tokenProgram: SPL.TOKEN_PROGRAM_ID,
+      })
+      .signers([playerOne])
+      .rpc();
+    const result = await program.account.game.fetchNullable(gamePDA);
+    if (result) {
+      throw new Error("Game account should not exist");
+    }
+    console.log("txid: ", tx);
+  });
+});
+
+describe("bonk-paper-scissors: safety", () => {
+  anchor.setProvider(anchor.AnchorProvider.env());
+
+  const program = anchor.workspace
+    .BonkPaperScissors as Program<BonkPaperScissors>;
+
+  let tokenCreator: anchor.web3.Keypair;
+  let playerOne: anchor.web3.Keypair;
+  let mint: anchor.web3.PublicKey;
+  let ataOne: anchor.web3.PublicKey;
+  let escrowOne: anchor.web3.PublicKey;
+  let gamePDA: anchor.web3.PublicKey;
+  let playerOneSalt: number[];
+  let playerOneHash: number[];
+
+  it("stage: first_player_move", async () => {
+    // #region ----- SETUP -----
+    const results = await createAndFundAccounts(program);
+    tokenCreator = results.tokenCreator;
+    playerOne = results.playerOne;
+
+    const initializeMintResult = await initializeMint(program, tokenCreator);
+    mint = initializeMintResult;
+
+    const mintToPlayerOne = await mintTo(
+      program,
+      tokenCreator,
+      playerOne.publicKey,
+      mint,
+      10_000
+    );
+    ataOne = mintToPlayerOne.ata;
+    // #endregion ----- SETUP ----- END
+
+    const getGamePDAResult = getGamePDA(
+      playerOne.publicKey,
+      program.programId,
+      SECOND_GAME_ID
+    );
+    gamePDA = getGamePDAResult[0];
+    const getEscrowPDAResult = getEscrowPDA(
+      "first",
+      gamePDA,
+      program.programId
+    );
+    escrowOne = getEscrowPDAResult[0];
+
+    const salt = generateSalt();
+    playerOneSalt = [...salt];
+    const hash = generateHash([...salt], 1);
+    playerOneHash = [...hash];
+
+    const txId = await program.methods
+      .firstPlayerMove(SECOND_GAME_ID, new anchor.BN(1_000), playerOneHash)
+      .accountsStrict({
+        game: gamePDA,
+        firstPlayer: playerOne.publicKey,
+        firstPlayerEscrow: escrowOne,
+        firstPlayerTokenAccount: ataOne,
+        mint: mint,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        associatedTokenProgram: SPL.ASSOCIATED_TOKEN_PROGRAM_ID,
+        tokenProgram: SPL.TOKEN_PROGRAM_ID,
+      })
+      .signers([playerOne])
+      .rpc();
+    const result = await program.account.game.fetchNullable(gamePDA);
+    if (result === null) {
+      throw new Error("Game account not found");
+    }
+    console.log("txid: ", txId);
+  });
+
+  it("won't allow for external withdrawals from escrow", async () => {
+    try {
+      await SPL.transfer(
+        program.provider.connection,
+        playerOne,
+        escrowOne,
+        ataOne,
+        gamePDA,
+        1_000
+      );
+      throw new Error("Should not be able to withdraw from escrow");
+    } catch (error) {
+      if (error.message === "Should not be able to withdraw from escrow") {
+        throw error;
+      } else if (error.message === "Signature verification failed") {
+        console.log("All good, this should fail");
+      }
+    }
   });
 });
