@@ -1,3 +1,3 @@
-pub mod BPSError;
+pub mod bpserror;
 
-pub use BPSError::*;
+pub use bpserror::*;
