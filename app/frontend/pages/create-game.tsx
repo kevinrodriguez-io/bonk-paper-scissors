@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import useMutation from "swr/mutation";
 import { Layout } from "../components/Layout";
 
 const schema = z.object({
@@ -13,8 +14,20 @@ const schema = z.object({
     .min(3, "Game id must be at least 3 characters")
     .max(24, "Game id must be at most 24 characters"),
   amount: z.number().min(1000, "Amount must be at least 1000"),
-  choice: z.string(),
 });
+
+type CreateGameNeededParams = {
+    gameId: string;
+    amount: number;
+    choice: "rock" | "paper" | "scissors";
+    salt: string;
+    mint: string;
+    walletKey: string;
+}
+
+const createGame = () => {
+    // TODO: Add logic to create game
+}
 
 const CreateGame: NextPage = () => {
   const {
@@ -24,7 +37,12 @@ const CreateGame: NextPage = () => {
   } = useForm({
     resolver: zodResolver(schema),
   });
+  const createGame = useMutation("game", async () => {
 
+  }, {});
+  const [choice, setChoice] = useState<"rock" | "paper" | "scissors" | null>(
+    null
+  );
   const [salt, setSalt] = useState<string | null>(null);
   useEffect(() => {
     const randomBytes = window.crypto.getRandomValues(new Uint8Array(32));
@@ -139,13 +157,13 @@ const CreateGame: NextPage = () => {
                     <div className="mt-4 space-y-4">
                       <div className="flex items-center">
                         <input
-                          id="push-everything"
-                          name="push-notifications"
+                          id="bonk"
+                          name="choice"
                           type="radio"
                           className="h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
                         />
                         <label
-                          htmlFor="push-everything"
+                          htmlFor="bonk"
                           className="ml-3 block text-sm font-medium text-gray-700"
                         >
                           Bonk 🪨🐶
@@ -153,13 +171,13 @@ const CreateGame: NextPage = () => {
                       </div>
                       <div className="flex items-center">
                         <input
-                          id="push-email"
-                          name="push-notifications"
+                          id="paper"
+                          name="choice"
                           type="radio"
                           className="h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
                         />
                         <label
-                          htmlFor="push-email"
+                          htmlFor="paper"
                           className="ml-3 block text-sm font-medium text-gray-700"
                         >
                           Paper 📄
@@ -167,13 +185,13 @@ const CreateGame: NextPage = () => {
                       </div>
                       <div className="flex items-center">
                         <input
-                          id="push-nothing"
-                          name="push-notifications"
+                          id="scissors"
+                          name="choice"
                           type="radio"
                           className="h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
                         />
                         <label
-                          htmlFor="push-nothing"
+                          htmlFor="scissors"
                           className="ml-3 block text-sm font-medium text-gray-700"
                         >
                           Scissors ✂️
@@ -187,7 +205,7 @@ const CreateGame: NextPage = () => {
 
             <div className="flex justify-end">
               <button
-                type="button"
+                type="reset"
                 className="rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               >
                 Cancel
@@ -196,7 +214,7 @@ const CreateGame: NextPage = () => {
                 type="submit"
                 className="ml-3 inline-flex justify-center rounded-md border border-transparent bg-primary-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               >
-                Save
+                Start Game
               </button>
             </div>
           </form>
