@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.wallet-adapter-button.wallet-adapter-button-trigger {
+  @apply bg-primary-700;
+}

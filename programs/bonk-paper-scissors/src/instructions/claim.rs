@@ -1,7 +1,14 @@
 use anchor_lang::prelude::*;
-use anchor_spl::{token::{TokenAccount, Mint, Token, transfer, Transfer, burn, Burn}, associated_token::AssociatedToken};
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    token::{burn, transfer, Burn, Mint, Token, TokenAccount, Transfer},
+};
 
-use crate::{constants::GAME, state::{Game, GameState, Choice}, error::BPSError};
+use crate::{
+    constants::{GAME, RECEIPT},
+    error::BPSError,
+    state::{Choice, Game, GameState, Receipt},
+};
 
 #[derive(Accounts)]
 #[instruction(game_id: String)]
@@ -16,6 +23,18 @@ pub struct Claim<'info> {
         bump = game.bump
     )]
     pub game: Box<Account<'info, Game>>,
+
+    #[account(
+        init,
+        seeds = [
+            RECEIPT.as_ref(),
+            game.key().as_ref() 
+        ],
+        space = Receipt::size(),
+        payer = payer,
+        bump
+    )]
+    pub receipt: Box<Account<'info, Receipt>>,
 
     #[account(
         mut,
@@ -72,9 +91,12 @@ pub struct Claim<'info> {
 pub fn claim(ctx: Context<Claim>, game_id: String) -> Result<()> {
     let clock = Clock::get()?;
     let game = &mut ctx.accounts.game;
+    let receipt = &mut ctx.accounts.receipt;
     let mint = &ctx.accounts.mint;
+    let first_player = &ctx.accounts.first_player;
     let first_player_escrow = &mut ctx.accounts.first_player_escrow;
     let first_player_token_account = &mut ctx.accounts.first_player_token_account;
+    let second_player = &ctx.accounts.second_player;
     let second_player_escrow = &mut ctx.accounts.second_player_escrow;
     let second_player_token_account = &mut ctx.accounts.second_player_token_account;
 
@@ -173,6 +195,15 @@ pub fn claim(ctx: Context<Claim>, game_id: String) -> Result<()> {
             // ----- Burn 10% of each player's funds -----
 
         game.game_state = GameState::FirstPlayerWon;
+        receipt.set_inner(Receipt::new(
+            game_id, 
+            game.key(),
+            Some(first_player.key()), 
+            Some(second_player.key()), 
+            amount_to_pay * 2, 
+            amount_to_burn * 2, 
+            clock.unix_timestamp,
+        ));
     } else if second_player_wins {
         msg!("Second player wins");
         // ----- Transfer 90% of the tokens to the second player -----
@@ -230,6 +261,15 @@ pub fn claim(ctx: Context<Claim>, game_id: String) -> Result<()> {
             // ----- Burn 10% of each player's funds -----
 
         game.game_state = GameState::SecondPlayerWon;
+        receipt.set_inner(Receipt::new(
+            game_id, 
+            game.key(),
+            Some(second_player.key()), 
+            Some(first_player.key()), 
+            amount_to_pay * 2, 
+            amount_to_burn * 2, 
+            clock.unix_timestamp,
+        ));
     } else {
         // ----- Return all funds to the original accounts -----
         transfer(
@@ -258,6 +298,15 @@ pub fn claim(ctx: Context<Claim>, game_id: String) -> Result<()> {
         )?;
         // ----- Return all funds to the original accounts -----
         game.game_state = GameState::Draw;
+        receipt.set_inner(Receipt::new(
+            game_id, 
+            game.key(),
+            None, 
+            None, 
+            0, 
+            0, 
+            clock.unix_timestamp,
+        ));
     }
 
     Ok(())
