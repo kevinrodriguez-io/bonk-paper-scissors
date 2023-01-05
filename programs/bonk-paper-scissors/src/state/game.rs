@@ -37,6 +37,12 @@ pub struct Game {
     pub second_player_choice: Option<Choice>,
     pub second_player_revealed_at: Option<i64>,
 
+    pub winner: Option<Pubkey>,
+    pub loser: Option<Pubkey>,
+    pub amount_won: Option<u64>,
+    pub amount_burned: Option<u64>,
+    pub drawn_at: Option<i64>,
+
     pub game_state: GameState,
 }
 
@@ -59,6 +65,12 @@ impl Game {
         1 + 32 + // second_player_escrow_address
         1 + 1 + // second_player_choice
         1 + 8 + // second_player_revealed_at
+
+        1 + 32 + // winner
+        1 + 32 + // loser
+        1 + 8 + // amount_won
+        1 + 8 + // amount_burned
+        1 + 8 + // drawn_at
 
         1 + // game_state
         128 // padding
@@ -90,6 +102,12 @@ impl Game {
             second_player_escrow_address: None,
             second_player_choice: None,
             second_player_revealed_at: None,
+
+            winner: None,
+            loser: None,
+            amount_won: None,
+            amount_burned: None,
+            drawn_at: None,
 
             game_state: GameState::CreatedAndWaitingForStart,
         }
@@ -143,5 +161,20 @@ impl Game {
         }
         // This player didn't reveal, but seven days has passed since the other player revealed.
         return self.first_player_revealed_at.unwrap() + SEVEN_DAYS < now;
+    }
+
+    pub fn set_claim_fields(
+        &mut self,
+        winner: Pubkey,
+        loser: Pubkey,
+        amount_won: u64,
+        amount_burned: u64,
+        drawn_at: i64,
+    ) {
+        self.winner = Some(winner);
+        self.loser = Some(loser);
+        self.amount_won = Some(amount_won);
+        self.amount_burned = Some(amount_burned);
+        self.drawn_at = Some(drawn_at);
     }
 }

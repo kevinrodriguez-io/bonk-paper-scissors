@@ -53,6 +53,13 @@ const getEscrowPDA = (
   );
 };
 
+const getReceiptPDA = (gamePDA: anchor.web3.PublicKey) => {
+  return anchor.web3.PublicKey.findProgramAddressSync(
+    [gamePDA.toBytes(), b`receipt`],
+    gamePDA
+  );
+};
+
 const createAndFundAccounts = async (program: Program<BonkPaperScissors>) => {
   const tokenCreator = anchor.web3.Keypair.generate();
   const playerOne = anchor.web3.Keypair.generate();
@@ -268,6 +275,7 @@ describe("bonk-paper-scissors: happy-path", async () => {
   });
 
   it("claim", async () => {
+    const [receiptPDA] = getReceiptPDA(gamePDA);
     const tx = await program.methods
       .claim(GAME_ID)
       .accountsStrict({
@@ -299,7 +307,7 @@ describe("bonk-paper-scissors: happy-path", async () => {
     if (result === null) {
       throw new Error("Game account not found");
     }
-    // console.log("result: ", result);
+    console.log("result: ", JSON.stringify(result, null, 2));
   });
 });
 
