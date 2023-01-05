@@ -17,8 +17,8 @@ import { PlusIcon } from "@heroicons/react/20/solid";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 const navigation = [
-  { name: "Lobby", href: "#", icon: HomeIcon, current: true },
-  { name: "Create Game", href: "#", icon: PlusIcon, current: false },
+  { name: "Lobby", href: "/", icon: HomeIcon, current: true },
+  { name: "Create Game", href: "/create-game", icon: PlusIcon, current: false },
 ];
 
 type LayoutProps = {
