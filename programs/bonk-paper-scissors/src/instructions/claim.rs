@@ -179,7 +179,7 @@ pub fn claim(ctx: Context<Claim>, game_id: String) -> Result<()> {
             .with_signer(game_signer),
             amount_to_burn,
         )?; // Burn 10%
-            // ----- Burn 10% of each player's funds -----
+        // ----- Burn 10% of each player's funds -----
 
         game.game_state = GameState::FirstPlayerWon;
         game.set_claim_fields(
