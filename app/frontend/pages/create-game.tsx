@@ -48,16 +48,16 @@ const FirstCard = ({ onSuccess, onCancel, isLoading }: FirstCardProps) => {
             <h3 className="text-lg font-medium leading-6 text-gray-900">
               Notes
             </h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 text-justify">
               By creating a game you have to provide your choice, which will be
               private until both players reveal. Once revealed, the winner will
               be determined by the bonk, paper, scissors rules.
             </p>
-            <p className="mt-1 text-gray-500 text-sm">
+            <p className="mt-1 text-gray-500 text-sm text-justify">
               The winner wins a total of the 90% of the pot (both it's deposit
               and the adversary deposit), while the other 10% is burned 🔥.
             </p>
-            <p className="mt-1 text-sm text-red-900">
+            <p className="mt-1 text-sm text-red-900 text-justify">
               A player who makes a choice and refuses to reveal is penalized as
               forfeit after 7 days, making the other player the winner, so
               remember to always reveal when prompted.
@@ -133,12 +133,13 @@ type SecondCardProps = CanBeLoading & {
 
 const SecondCard = ({ onSuccess, onCancel, isLoading }: SecondCardProps) => {
   const [salt, setSalt] = useState<SaltResult | null>(null);
+  // TODO: Move this to zod as in {joinSchema}
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     const { bytesBs58, randomBytes } = getSalt();
     setSalt({ bytesBs58, randomBytes });
   }, []);
-  const [saltVisible, setSaltVisible] = useState(false);
+  // const [saltVisible, setSaltVisible] = useState(false);
   return (
     <form
       className="space-y-6 mt-8"
@@ -179,7 +180,8 @@ const SecondCard = ({ onSuccess, onCancel, isLoading }: SecondCardProps) => {
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-6">
+
+            {/* <div className="grid grid-cols-3 gap-6">
               <div className="col-span-3 sm:col-span-2">
                 <span className="block text-sm font-medium text-gray-700">
                   Salt (readonly) <b>DO NOT SHARE</b>
@@ -197,7 +199,7 @@ const SecondCard = ({ onSuccess, onCancel, isLoading }: SecondCardProps) => {
                   </button>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             <fieldset>
               <legend className="contents text-sm font-medium text-gray-700">
@@ -376,7 +378,7 @@ const CreateGame: NextPage = () => {
   return (
     <>
       <Head>
-        <title>BPS App</title>
+        <title>BPS App - Create Game</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Layout title="Create game">

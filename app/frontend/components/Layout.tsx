@@ -1,4 +1,4 @@
-import { FC, Fragment, useState } from "react";
+import { FC, Fragment, useMemo, useState } from "react";
 import Link from "next/link";
 import cx from "classnames";
 import { Dialog, Menu, Transition } from "@headlessui/react";
@@ -14,10 +14,19 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { PlusIcon } from "@heroicons/react/20/solid";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useRouter } from "next/router";
+import dynamic from "next/dynamic";
 
-const navigation = [
-  { name: "Lobby", href: "/", icon: HomeIcon, current: true },
+const WalletMultiButton = dynamic(
+  () =>
+    import("@solana/wallet-adapter-react-ui").then(
+      (mod) => mod.WalletMultiButton
+    ),
+  { ssr: false }
+);
+
+const NAVIGATION_ROUTES = [
+  { name: "Lobby", href: "/", icon: HomeIcon, current: false },
   { name: "Create Game", href: "/create-game", icon: PlusIcon, current: false },
 ];
 
@@ -28,6 +37,15 @@ type LayoutProps = {
 
 export const Layout = ({ children, title }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { asPath } = useRouter();
+  const navigation = useMemo(
+    () =>
+      NAVIGATION_ROUTES.map((route) => ({
+        ...route,
+        current: route.href === asPath,
+      })),
+    [asPath]
+  );
 
   return (
     <>

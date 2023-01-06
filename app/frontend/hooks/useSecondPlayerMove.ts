@@ -10,32 +10,33 @@ import { findTokenAccountForMintByOwnerPublicKey } from "../lib/solana/findToken
 import { getHash, SaltResult } from "../lib/crypto/crypto";
 import { Choice } from "../types/Choice";
 import { getEscrowPDA, getGamePDA } from "../lib/solana/pdaHelpers";
-import type { AnchorHookDependencies } from "../types/AnchorHookDependencies";
+import { AnchorWallet } from "@solana/wallet-adapter-react";
+import { AnchorHookDependencies } from "../types/AnchorHookDependencies";
 
-type FirstPlayerMovePayload = {
-  amount: number;
-  gameId: string;
+type SecondPlayerMovePayload = {
+  gamePubKey: web3.PublicKey;
   choice: Choice;
   salt: SaltResult;
 };
 
-type FirstPlayerMove = {
-  payload: FirstPlayerMovePayload;
+type SecondPlayerMove = {
+  payload: SecondPlayerMovePayload;
   dependencies: AnchorHookDependencies;
 };
 
-const firstPlayerMove = async (
+const secondPlayerMove = async (
   key: string,
-  firstPlayerMove: FirstPlayerMove
+  secondPlayerMove: SecondPlayerMove
 ) => {
-  const { connection, wallet } = firstPlayerMove.dependencies;
-  const { amount, gameId, salt, choice } = firstPlayerMove.payload;
+  const { connection, wallet } = secondPlayerMove.dependencies;
+  const { salt, choice, gamePubKey } = secondPlayerMove.payload;
 
   const provider = new AnchorProvider(connection, wallet!, {});
   const program = new Program(IDL, getBPSProgramId(), provider);
 
-  const mint = getMintPubKey();
+  const game = await program.account.game.fetch(gamePubKey);
 
+  const mint = game.mint;
   const playerATA = await findTokenAccountForMintByOwnerPublicKey(
     provider.connection,
     provider.wallet.publicKey,
@@ -48,21 +49,19 @@ const firstPlayerMove = async (
 
   const hash = await getHash(salt, choice);
 
-  const [gamePDA] = getGamePDA(
-    provider.wallet.publicKey,
-    gameId,
+  const [playerEscrowPDA] = getEscrowPDA(
+    "second",
+    gamePubKey,
     program.programId
   );
 
-  const [playerEscrowPDA] = getEscrowPDA("first", gamePDA, program.programId);
-
   const txId = await program.methods
-    .firstPlayerMove(gameId, new BN(amount), [...hash.hash])
+    .secondPlayerMove(game.gameId, [...hash.hash])
     .accountsStrict({
-      game: gamePDA,
-      firstPlayer: provider.wallet.publicKey,
-      firstPlayerEscrow: playerEscrowPDA,
-      firstPlayerTokenAccount: playerATA,
+      game: gamePubKey,
+      secondPlayer: provider.wallet.publicKey,
+      secondPlayerEscrow: playerEscrowPDA,
+      secondPlayerTokenAccount: playerATA,
       mint: mint,
       systemProgram: web3.SystemProgram.programId,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -73,19 +72,19 @@ const firstPlayerMove = async (
   return txId;
 };
 
-type FirstPlayerMoveHookInput = {
+type SecondPlayerMoveHookInput = {
   onSuccess?: (data: string) => void;
   onError?: (error: Error) => void;
 };
 
-export const useFirstPlayerMove = ({
+export const useSecondPlayerMove = ({
   onSuccess,
   onError,
-}: FirstPlayerMoveHookInput) => {
+}: SecondPlayerMoveHookInput) => {
   const { trigger, ...options } = useSWRMutation(
-    "firstPlayerMove",
-    async (_key, { arg }: { arg: FirstPlayerMove }) =>
-      firstPlayerMove(_key, arg),
+    "secondPlayerMove",
+    async (_key, { arg }: { arg: SecondPlayerMove }) =>
+      secondPlayerMove(_key, arg),
     {
       onSuccess,
       onError,
@@ -93,6 +92,6 @@ export const useFirstPlayerMove = ({
   );
   return {
     ...options,
-    firstPlayerMove: trigger,
+    secondPlayerMove: trigger,
   };
 };
