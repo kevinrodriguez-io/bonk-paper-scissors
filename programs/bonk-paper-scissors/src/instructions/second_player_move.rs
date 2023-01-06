@@ -1,12 +1,13 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token::{Mint, Token, TokenAccount, Transfer, transfer},
+    token::{transfer, Mint, Token, TokenAccount, Transfer},
 };
 
 use crate::{
     constants::{ESCROW, GAME, SECOND_PLAYER},
-    state::{Game, GameState}, error::BPSError,
+    error::BPSError,
+    state::{Game, GameState},
 };
 
 #[derive(Accounts)]
@@ -42,7 +43,10 @@ pub struct SecondPlayerMove<'info> {
     #[account(address = game.mint)]
     pub mint: Account<'info, Mint>,
 
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = game.first_player != second_player.key() @ BPSError::FirstPlayerCantJoinAsSecondPlayer,
+    )]
     pub second_player: Signer<'info>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token>,
@@ -83,4 +87,3 @@ pub fn second_player_move(
 
     Ok(())
 }
-

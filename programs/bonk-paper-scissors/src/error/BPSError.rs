@@ -10,4 +10,6 @@ pub enum BPSError {
     InvalidPlayer,
     #[msg("Invalid Hash")]
     InvalidHash,
+    #[msg("First Player Can't Join as Second Player")]
+    FirstPlayerCantJoinAsSecondPlayer,
 }
