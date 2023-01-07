@@ -4,7 +4,7 @@ import Head from "next/head";
 import { GameCard } from "../components/GameCard";
 import { Layout } from "../components/Layout";
 import { LoadingCard } from "../components/LoadingCard";
-import { Spinner } from "../components/Spinner";
+import { NoGamesCard } from "../components/NoGamesCard";
 import { useGamesByStatus } from "../hooks/useGamesByStatus";
 import { getValueFromEnumVariant } from "../lib/solana/getValueFromEnumVariant";
 import { capitalize, splitLowerCaseItemIntoWords } from "../lib/string";
@@ -47,7 +47,7 @@ const Home: NextPage = () => {
                 />
               ))}
             </div>
-          ) : null}
+          ) : <NoGamesCard />}
         </div>
       </Layout>
     </>

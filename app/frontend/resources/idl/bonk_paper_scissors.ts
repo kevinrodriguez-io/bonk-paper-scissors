@@ -106,12 +106,7 @@ export type BonkPaperScissors = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "gameId",
-          "type": "string"
-        }
-      ]
+      "args": []
     },
     {
       "name": "secondPlayerMove",
@@ -162,10 +157,6 @@ export type BonkPaperScissors = {
       ],
       "args": [
         {
-          "name": "gameId",
-          "type": "string"
-        },
-        {
           "name": "secondPlayerHash",
           "type": {
             "array": [
@@ -199,10 +190,6 @@ export type BonkPaperScissors = {
         }
       ],
       "args": [
-        {
-          "name": "gameId",
-          "type": "string"
-        },
         {
           "name": "choice",
           "type": {
@@ -287,12 +274,7 @@ export type BonkPaperScissors = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "gameId",
-          "type": "string"
-        }
-      ]
+      "args": []
     },
     {
       "name": "testHashing",
@@ -321,6 +303,67 @@ export type BonkPaperScissors = {
           }
         }
       ]
+    },
+    {
+      "name": "adminUnwindStaleGame",
+      "accounts": [
+        {
+          "name": "game",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "firstPlayerEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "firstPlayerTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "secondPlayerEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "secondPlayerTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "firstPlayer",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "secondPlayer",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "signer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -515,6 +558,11 @@ export type BonkPaperScissors = {
       "code": 6003,
       "name": "InvalidHash",
       "msg": "Invalid Hash"
+    },
+    {
+      "code": 6004,
+      "name": "FirstPlayerCantJoinAsSecondPlayer",
+      "msg": "First Player Can't Join as Second Player"
     }
   ]
 };
@@ -627,12 +675,7 @@ export const IDL: BonkPaperScissors = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "gameId",
-          "type": "string"
-        }
-      ]
+      "args": []
     },
     {
       "name": "secondPlayerMove",
@@ -683,10 +726,6 @@ export const IDL: BonkPaperScissors = {
       ],
       "args": [
         {
-          "name": "gameId",
-          "type": "string"
-        },
-        {
           "name": "secondPlayerHash",
           "type": {
             "array": [
@@ -720,10 +759,6 @@ export const IDL: BonkPaperScissors = {
         }
       ],
       "args": [
-        {
-          "name": "gameId",
-          "type": "string"
-        },
         {
           "name": "choice",
           "type": {
@@ -808,12 +843,7 @@ export const IDL: BonkPaperScissors = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "gameId",
-          "type": "string"
-        }
-      ]
+      "args": []
     },
     {
       "name": "testHashing",
@@ -842,6 +872,67 @@ export const IDL: BonkPaperScissors = {
           }
         }
       ]
+    },
+    {
+      "name": "adminUnwindStaleGame",
+      "accounts": [
+        {
+          "name": "game",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "firstPlayerEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "firstPlayerTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "secondPlayerEscrow",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "secondPlayerTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "firstPlayer",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "secondPlayer",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "signer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -1036,6 +1127,11 @@ export const IDL: BonkPaperScissors = {
       "code": 6003,
       "name": "InvalidHash",
       "msg": "Invalid Hash"
+    },
+    {
+      "code": 6004,
+      "name": "FirstPlayerCantJoinAsSecondPlayer",
+      "msg": "First Player Can't Join as Second Player"
     }
   ]
 };

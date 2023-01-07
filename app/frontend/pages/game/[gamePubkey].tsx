@@ -17,13 +17,19 @@ import { ConnectWalletCard } from "../../components/ConnectWalletCard";
 import { GameCard } from "../../components/GameCard";
 import { Layout } from "../../components/Layout";
 import { LoadingCard } from "../../components/LoadingCard";
+import { NotFoundCard } from "../../components/NotFoundCard";
 import { Spinner } from "../../components/Spinner";
 import { MINT } from "../../constants/constants";
+import { useAdminCloseStaleGame } from "../../hooks/useAdminCloseStaleGame";
+import { useCancelGame } from "../../hooks/useCancelGame";
 import { useGame } from "../../hooks/useGame";
 import { useGameChangesListener } from "../../hooks/useGameSubscription";
+import { useIsAdminWallet } from "../../hooks/useIsAdminWallet";
+import { useIsGameCreator } from "../../hooks/useIsGameCreator";
 import { useSecondPlayerMove } from "../../hooks/useSecondPlayerMove";
 import { getSalt, SaltResult } from "../../lib/crypto/crypto";
 import { getValueFromEnumVariant } from "../../lib/solana/getValueFromEnumVariant";
+import { getChoiceKey, getSaltKey } from "../../lib/storage";
 import { capitalize, splitLowerCaseItemIntoWords } from "../../lib/string";
 import { CanBeLoading } from "../../types/CanBeLoading";
 import { Choice } from "../../types/Choice";
@@ -41,7 +47,6 @@ const joinSchema = z.object({
     })
     .refine(
       (choice) => {
-        console.log({ choice });
         return ["bonk", "paper", "scissors"].includes(choice);
       },
       {
@@ -103,74 +108,57 @@ const JoinCard = ({ onSuccess, onCancel, isLoading }: JoinCardProps) => {
           </div>
 
           <div className="mt-5 space-y-6 md:col-span-2 md:mt-0">
-            {/* <div className="grid grid-cols-3 gap-6">
-              <div className="col-span-3 sm:col-span-2">
-                <span className="block text-sm font-medium text-gray-700">
-                  Salt (readonly) <b>DO NOT SHARE</b>
-                </span>
-                <div className="mt-1 flex font-mono items-center text-[8px] sm:text-xs">
-                  {saltVisible
-                    ? salt?.bytesBs58
-                    : "*".repeat(salt?.bytesBs58.length ?? 0)}
-                  <button
-                    type="button"
-                    className="ml-2 inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                    onClick={() => setSaltVisible(!saltVisible)}
-                  >
-                    {saltVisible ? "Hide" : "Show"}
-                  </button>
-                </div>
-              </div>
-            </div> */}
-
             <fieldset>
               <legend className="contents text-sm font-medium text-gray-700">
                 Your secret choice
               </legend>
-              <div className="mt-4 space-y-4">
-                <div className="flex items-center">
+              <div className="mt-4 space-y-4 flex">
+                <div className="flex items-center relative">
                   <input
                     id="bonk"
                     type="radio"
-                    className="h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
+                    className="hidden peer"
                     value="bonk"
                     {...register("choice")}
                   />
                   <label
                     htmlFor="bonk"
-                    className="ml-3 block text-sm font-medium text-gray-700"
+                    className="text-center text-black peer-checked:text-white block cursor-pointer rounded-lg peer-checked:bg-primary-600 peer-checked:border-transparent peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-primary-500"
                   >
-                    Bonk 🪨🐶
+                    <img src="/bat.png" className="h-48 w-48" />
+                    Bonk
                   </label>
                 </div>
                 <div className="flex items-center">
                   <input
                     id="paper"
                     type="radio"
-                    className="h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
+                    className="hidden peer"
                     value="paper"
                     {...register("choice")}
                   />
                   <label
                     htmlFor="paper"
-                    className="ml-3 block text-sm font-medium text-gray-700"
+                    className="text-center text-black peer-checked:text-white block cursor-pointer rounded-lg peer-checked:bg-primary-600 peer-checked:border-transparent peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-primary-500"
                   >
-                    Paper 📄
+                    <img src="/paper.png" className="h-48 w-48" />
+                    Paper
                   </label>
                 </div>
                 <div className="flex items-center">
                   <input
                     id="scissors"
                     type="radio"
-                    className="h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
+                    className="hidden peer"
                     value="scissors"
                     {...register("choice")}
                   />
                   <label
                     htmlFor="scissors"
-                    className="ml-3 block text-sm font-medium text-gray-700"
+                    className="text-center text-black peer-checked:text-white block cursor-pointer rounded-lg peer-checked:bg-primary-600 peer-checked:border-transparent peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-primary-500"
                   >
-                    Scissors ✂️
+                    <img src="/scissors.png" className="h-48 w-48" />
+                    Scissors
                   </label>
                 </div>
               </div>
@@ -212,12 +200,75 @@ type GameContentsProps = {
 const GameContents = ({ gamePubkey }: GameContentsProps) => {
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
+  const { data, error, isLoading, mutate } = useGame(
+    new web3.PublicKey(gamePubkey)
+  );
   const { publicKey } = useWallet();
   const [salt, setSalt] = useState<SaltResult | null>(null);
   const [choice, setChoice] = useState<Choice | null>(null);
   const [fireSecondPlayerMove, setFireSecondPlayerMove] = useState(0);
+  const adminCloseStaleGame = useAdminCloseStaleGame({
+    onSuccess: (txId) => {
+      toast.success(() => {
+        const url = `https://explorer.solana.com/tx/${txId}`;
+        return (
+          <div className="flex items-center space-x-2">
+            <div>Game closed!</div>
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-200 underline"
+            >
+              View on Solana Explorer
+            </a>
+          </div>
+        );
+      });
+      localStorage.setItem(
+        getChoiceKey(gamePubkey, wallet!.publicKey.toBase58()),
+        choice!
+      );
+      localStorage.setItem(
+        getSaltKey(gamePubkey, wallet!.publicKey.toBase58()),
+        JSON.stringify(salt)
+      );
+    },
+    onError: (err) => toast.error(err.message),
+  });
+  const cancelGame = useCancelGame({
+    onSuccess: (txId) => {
+      toast.success(() => {
+        const url = `https://explorer.solana.com/tx/${txId}`;
+        return (
+          <div className="flex items-center space-x-2">
+            <div>Game cancelled!</div>
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-200 underline"
+            >
+              View on Solana Explorer
+            </a>
+          </div>
+        );
+      });
+      localStorage.setItem(
+        getChoiceKey(gamePubkey, wallet!.publicKey.toBase58()),
+        choice!
+      );
+      localStorage.setItem(
+        getSaltKey(gamePubkey, wallet!.publicKey.toBase58()),
+        JSON.stringify(salt)
+      );
+    },
+    onError: (err) => toast.error(err.message),
+  });
+  const isAdminWallet = useIsAdminWallet();
+  const isGameCreator = useIsGameCreator(data?.firstPlayer.toBase58());
   const secondPlayerMove = useSecondPlayerMove({
-    onSuccess: (txId) =>
+    onSuccess: ({ txId, salt, gamePDA, choice }) => {
       toast.success(
         () => {
           const url = `https://explorer.solana.com/tx/${txId}`;
@@ -236,12 +287,18 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
           );
         },
         { autoClose: false }
-      ),
+      );
+      localStorage.setItem(
+        getChoiceKey(gamePDA.toBase58(), wallet!.publicKey.toBase58()),
+        choice!
+      );
+      localStorage.setItem(
+        getSaltKey(gamePDA.toBase58(), wallet!.publicKey.toBase58()),
+        JSON.stringify(salt)
+      );
+    },
     onError: (err) => toast.error(err.message, { autoClose: false }),
   });
-  const { data, error, isLoading, mutate } = useGame(
-    new web3.PublicKey(gamePubkey)
-  );
 
   useGameChangesListener(new web3.PublicKey(gamePubkey), (acc) => {
     mutate(acc);
@@ -293,14 +350,22 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
 
   if (error || !data) {
     console.log({ error });
-    return <div>Error loading game</div>;
+    return <NotFoundCard />;
   }
 
   const gameIsJoinable =
     publicKey &&
     !data.firstPlayer.equals(publicKey) &&
     data.gameState.createdAndWaitingForStart;
+
   const stuffIsLoading = secondPlayerMove.isMutating || isLoading;
+
+  const isAdminClosable =
+    isAdminWallet && data.gameState.startedAndWaitingForReveal;
+
+  const isCancellable =
+    isGameCreator && data.gameState.createdAndWaitingForStart;
+
   return (
     <>
       <GameCard
@@ -320,6 +385,42 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
           onCancel={handleOnJoinCardCancel}
           isLoading={stuffIsLoading}
         />
+      ) : null}
+      {isAdminClosable ? (
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => {
+              adminCloseStaleGame.adminCloseStaleGame({
+                dependencies: { wallet: wallet!, connection },
+                payload: {
+                  gamePubKey: new web3.PublicKey(gamePubkey),
+                },
+              });
+            }}
+            className="ml-2 inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          >
+            {adminCloseStaleGame.isMutating ? <Spinner /> : "Close Game"}
+          </button>
+        </div>
+      ) : null}
+      {isCancellable ? (
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => {
+              cancelGame.cancelGame({
+                dependencies: { wallet: wallet!, connection },
+                payload: {
+                  gamePubKey: new web3.PublicKey(gamePubkey),
+                },
+              });
+            }}
+            className="ml-2 inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          >
+            {cancelGame.isMutating ? <Spinner /> : "Cancel Game"}
+          </button>
+        </div>
       ) : null}
     </>
   );

@@ -6,7 +6,7 @@ use anchor_spl::{
 
 use crate::{
     constants::{ESCROW, FIRST_PLAYER, GAME},
-    state::Game,
+    state::Game, error::BPSError,
 };
 
 #[derive(Accounts)]
@@ -42,7 +42,7 @@ pub struct FirstPlayerMove<'info> {
         mut,
         constraint = first_player_token_account.mint == mint.key(),
         constraint = first_player_token_account.owner == first_player.key(),
-        constraint = first_player_token_account.amount >= amount
+        constraint = first_player_token_account.amount >= amount @ BPSError::AmountExceedsBalance
     )]
     pub first_player_token_account: Account<'info, TokenAccount>,
     #[account(
@@ -65,6 +65,7 @@ pub fn first_player_move(
     amount: u64,
     first_player_hash: [u8; 32], // Choice + Salt
 ) -> Result<()> {
+    // let clock = Clock::get()?;
     let game = &mut ctx.accounts.game;
     let first_player_token_account = &mut ctx.accounts.first_player_token_account;
     let first_player_escrow = &mut ctx.accounts.first_player_escrow;
@@ -92,6 +93,7 @@ pub fn first_player_move(
         game_id,
         mint,
         amount,
+        // clock.unix_timestamp,
         first_player,
         first_player_hash,
         first_player_escrow.key(),

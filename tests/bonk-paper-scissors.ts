@@ -230,7 +230,7 @@ describe("bonk-paper-scissors: happy-path", async () => {
     const hash = generateHash([...salt], 3);
     playerTwoHash = [...hash];
     const txId = await program.methods
-      .secondPlayerMove(GAME_ID, playerTwoHash)
+      .secondPlayerMove(playerTwoHash)
       .accountsStrict({
         game: gamePDA,
         secondPlayer: playerTwo.publicKey,
@@ -248,7 +248,7 @@ describe("bonk-paper-scissors: happy-path", async () => {
 
   it("reveal (both)", async () => {
     const txId = await program.methods
-      .reveal(GAME_ID, { bonk: {} }, playerOneSalt)
+      .reveal({ bonk: {} }, playerOneSalt)
       .accountsStrict({
         game: gamePDA,
         player: playerOne.publicKey,
@@ -257,7 +257,7 @@ describe("bonk-paper-scissors: happy-path", async () => {
       .signers([playerOne])
       .rpc();
     const txId2 = await program.methods
-      .reveal(GAME_ID, { scissors: {} }, playerTwoSalt)
+      .reveal({ scissors: {} }, playerTwoSalt)
       .accountsStrict({
         game: gamePDA,
         player: playerTwo.publicKey,
@@ -277,7 +277,7 @@ describe("bonk-paper-scissors: happy-path", async () => {
   it("claim", async () => {
     const [receiptPDA] = getReceiptPDA(gamePDA);
     const tx = await program.methods
-      .claim(GAME_ID)
+      .claim()
       .accountsStrict({
         firstPlayer: playerOne.publicKey,
         firstPlayerEscrow: escrowOne,
@@ -386,7 +386,7 @@ describe("bonk-paper-scissors: cancelled", () => {
 
   it("cancel", async () => {
     const tx = await program.methods
-      .cancelGame(SECOND_GAME_ID)
+      .cancelGame()
       .accountsStrict({
         game: gamePDA,
         firstPlayer: playerOne.publicKey,

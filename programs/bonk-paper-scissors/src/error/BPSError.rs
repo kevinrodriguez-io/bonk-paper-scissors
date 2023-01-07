@@ -12,4 +12,6 @@ pub enum BPSError {
     InvalidHash,
     #[msg("First Player Can't Join as Second Player")]
     FirstPlayerCantJoinAsSecondPlayer,
+    #[msg("Amount exceeds balance")]
+    AmountExceedsBalance,
 }

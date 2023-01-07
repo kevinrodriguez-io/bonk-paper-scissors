@@ -11,14 +11,13 @@ use crate::{
 };
 
 #[derive(Accounts)]
-#[instruction(game_id: String)]
 pub struct Claim<'info> {
     #[account(
         mut,
         seeds = [
             GAME.as_ref(),
             game.first_player.as_ref(),
-            game_id.as_bytes()
+            game.game_id.as_bytes()
         ],
         bump = game.bump
     )]
@@ -62,10 +61,10 @@ pub struct Claim<'info> {
     )]
     pub mint: Account<'info, Mint>,
 
-    /// CHECK: No use to check this.
+    /// CHECK: No use to check this. (Checked by CPI)
     #[account(mut)]
     pub first_player: AccountInfo<'info>,
-    /// CHECK: No use to check this.
+    /// CHECK: No use to check this. (Checked by CPI)
     #[account(mut)]
     pub second_player: AccountInfo<'info>,
 
@@ -76,7 +75,7 @@ pub struct Claim<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn claim(ctx: Context<Claim>, game_id: String) -> Result<()> {
+pub fn claim(ctx: Context<Claim>) -> Result<()> {
     let clock = Clock::get()?;
     let game = &mut ctx.accounts.game;
     let mint = &ctx.accounts.mint;
@@ -99,7 +98,7 @@ pub fn claim(ctx: Context<Claim>, game_id: String) -> Result<()> {
     let game_seeds = &[
         b"game",
         game.first_player.as_ref(),
-        game_id.as_bytes(),
+        game.game_id.as_bytes(),
         &[game.bump],
     ];
     let game_signer = &[&game_seeds[..]];

@@ -8,7 +8,6 @@ use crate::{
 };
 
 #[derive(Accounts)]
-#[instruction(game_id: String)]
 pub struct CancelGame<'info> {
     #[account(
         mut,
@@ -16,7 +15,7 @@ pub struct CancelGame<'info> {
         seeds = [
             GAME.as_ref(),
             first_player.key().as_ref(),
-            game_id.as_bytes()
+            game.game_id.as_bytes()
         ],
         bump = game.bump,
         constraint = game.game_state == GameState::CreatedAndWaitingForStart @ BPSError::InvalidGameState,
@@ -51,14 +50,14 @@ pub struct CancelGame<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn cancel_game(ctx: Context<CancelGame>, game_id: String) -> Result<()> {
+pub fn cancel_game(ctx: Context<CancelGame>) -> Result<()> {
     let game = &ctx.accounts.game;
     let first_player_escrow = &ctx.accounts.first_player_escrow;
     let first_player_token_account = &ctx.accounts.first_player_token_account;
     let game_seeds = &[
         b"game",
         game.first_player.as_ref(),
-        game_id.as_bytes(),
+        game.game_id.as_bytes(),
         &[game.bump],
     ];
     let game_signer = &[&game_seeds[..]];

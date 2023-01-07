@@ -11,14 +11,13 @@ use crate::{
 };
 
 #[derive(Accounts)]
-#[instruction(game_id: String)]
 pub struct SecondPlayerMove<'info> {
     #[account(
         mut,
         seeds = [
             GAME.as_ref(),
             game.first_player.as_ref(),
-            game_id.as_bytes()
+            game.game_id.as_bytes()
         ],
         bump = game.bump
     )]
@@ -37,7 +36,7 @@ pub struct SecondPlayerMove<'info> {
         mut,
         constraint = second_player_token_account.mint == mint.key(),
         constraint = second_player_token_account.owner == second_player.key(),
-        constraint = second_player_token_account.amount >= game.amount_to_match
+        constraint = second_player_token_account.amount >= game.amount_to_match @ BPSError::AmountExceedsBalance
     )]
     pub second_player_token_account: Account<'info, TokenAccount>,
     #[account(address = game.mint)]

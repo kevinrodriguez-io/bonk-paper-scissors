@@ -9,6 +9,7 @@
     "@headlessui/react": "^1.7.7",
     "@heroicons/react": "^2.0.13",
     "@hookform/resolvers": "^2.9.10",
+    "@next/font": "^13.1.1",
     "@project-serum/anchor": "^0.26.0",
     "@solana/spl-token": "^0.3.6",
     "@solana/wallet-adapter-base": "^0.9.20",
@@ -25,6 +26,7 @@
     "react-dom": "18.2.0",
     "react-hook-form": "^7.41.5",
     "react-toastify": "^9.1.1",
+    "short-uuid": "^4.2.2",
     "swr": "^2.0.0",
     "usehooks-ts": "^2.9.1",
     "zod": "^3.20.2"

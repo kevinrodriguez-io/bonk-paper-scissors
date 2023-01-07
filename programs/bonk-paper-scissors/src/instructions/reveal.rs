@@ -3,14 +3,13 @@ use anchor_lang::prelude::*;
 use crate::{constants::GAME, state::{Game, Choice, GameState}, error::BPSError};
 
 #[derive(Accounts)]
-#[instruction(game_id: String)]
 pub struct Reveal<'info> {
     #[account(
         mut,
         seeds = [
             GAME.as_ref(),
             game.first_player.as_ref(),
-            game_id.as_bytes()
+            game.game_id.as_bytes()
         ],
         bump = game.bump
     )]

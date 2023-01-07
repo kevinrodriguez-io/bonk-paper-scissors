@@ -33,9 +33,10 @@ const NAVIGATION_ROUTES = [
 type LayoutProps = {
   title: string;
   children: React.ReactNode;
+  className?: string;
 };
 
-export const Layout = ({ children, title }: LayoutProps) => {
+export const Layout = ({ children, title, className }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { asPath } = useRouter();
   const navigation = useMemo(
@@ -49,7 +50,7 @@ export const Layout = ({ children, title }: LayoutProps) => {
 
   return (
     <>
-      <div>
+      <div className={className}>
         <Transition.Root show={sidebarOpen} as={Fragment}>
           <Dialog
             as="div"

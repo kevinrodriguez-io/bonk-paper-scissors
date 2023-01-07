@@ -6,14 +6,14 @@ import {
 } from "@solana/spl-token";
 import { IDL } from "../resources/idl/bonk_paper_scissors";
 import { getBPSProgramId, getMintPubKey } from "../constants/constants";
-import { findTokenAccountForMintByOwnerPublicKey } from "../lib/solana/findTokenAccountForMint";
+import { findTokenAccountPubKeyForMintByOwnerPublicKey } from "../lib/solana/findTokenAccountForMint";
 import { getHash, SaltResult } from "../lib/crypto/crypto";
 import { Choice } from "../types/Choice";
 import { getEscrowPDA, getGamePDA } from "../lib/solana/pdaHelpers";
 import type { AnchorHookDependencies } from "../types/AnchorHookDependencies";
 
 type FirstPlayerMovePayload = {
-  amount: number;
+  amount: BN;
   gameId: string;
   choice: Choice;
   salt: SaltResult;
@@ -36,7 +36,7 @@ const firstPlayerMove = async (
 
   const mint = getMintPubKey();
 
-  const playerATA = await findTokenAccountForMintByOwnerPublicKey(
+  const playerATA = await findTokenAccountPubKeyForMintByOwnerPublicKey(
     provider.connection,
     provider.wallet.publicKey,
     mint
@@ -56,8 +56,9 @@ const firstPlayerMove = async (
 
   const [playerEscrowPDA] = getEscrowPDA("first", gamePDA, program.programId);
 
-  const txId = await program.methods
-    .firstPlayerMove(gameId, new BN(amount), [...hash.hash])
+  console.log({ hash });
+  const tx = await program.methods
+    .firstPlayerMove(gameId, amount, [...hash.hash])
     .accountsStrict({
       game: gamePDA,
       firstPlayer: provider.wallet.publicKey,
@@ -68,13 +69,17 @@ const firstPlayerMove = async (
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       tokenProgram: TOKEN_PROGRAM_ID,
     })
-    .rpc();
+    .transaction();
 
-  return txId;
+  const txId = await program.provider.sendAndConfirm!(tx, [], {
+    skipPreflight: true,
+  })
+
+  return { txId, gamePDA, choice, salt };
 };
 
 type FirstPlayerMoveHookInput = {
-  onSuccess?: (data: string) => void;
+  onSuccess?: (data: Awaited<ReturnType<typeof firstPlayerMove>>) => void;
   onError?: (error: Error) => void;
 };
 
@@ -84,7 +89,7 @@ export const useFirstPlayerMove = ({
 }: FirstPlayerMoveHookInput) => {
   const { trigger, ...options } = useSWRMutation(
     "firstPlayerMove",
-    async (_key, { arg }: { arg: FirstPlayerMove }) =>
+    async (_key: string, { arg }: { arg: FirstPlayerMove }) =>
       firstPlayerMove(_key, arg),
     {
       onSuccess,

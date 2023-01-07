@@ -6,7 +6,7 @@ import {
 } from "@solana/spl-token";
 import { IDL } from "../resources/idl/bonk_paper_scissors";
 import { getBPSProgramId, getMintPubKey } from "../constants/constants";
-import { findTokenAccountForMintByOwnerPublicKey } from "../lib/solana/findTokenAccountForMint";
+import { findTokenAccountPubKeyForMintByOwnerPublicKey } from "../lib/solana/findTokenAccountForMint";
 import { getHash, SaltResult } from "../lib/crypto/crypto";
 import { Choice } from "../types/Choice";
 import { getEscrowPDA, getGamePDA } from "../lib/solana/pdaHelpers";
@@ -37,7 +37,7 @@ const secondPlayerMove = async (
   const game = await program.account.game.fetch(gamePubKey);
 
   const mint = game.mint;
-  const playerATA = await findTokenAccountForMintByOwnerPublicKey(
+  const playerATA = await findTokenAccountPubKeyForMintByOwnerPublicKey(
     provider.connection,
     provider.wallet.publicKey,
     mint
@@ -56,7 +56,7 @@ const secondPlayerMove = async (
   );
 
   const txId = await program.methods
-    .secondPlayerMove(game.gameId, [...hash.hash])
+    .secondPlayerMove([...hash.hash])
     .accountsStrict({
       game: gamePubKey,
       secondPlayer: provider.wallet.publicKey,
@@ -69,11 +69,11 @@ const secondPlayerMove = async (
     })
     .rpc();
 
-  return txId;
+  return { txId, gamePDA: gamePubKey, salt, choice };
 };
 
 type SecondPlayerMoveHookInput = {
-  onSuccess?: (data: string) => void;
+  onSuccess?: (data: Awaited<ReturnType<typeof secondPlayerMove>>) => void;
   onError?: (error: Error) => void;
 };
 

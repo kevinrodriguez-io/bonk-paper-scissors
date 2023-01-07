@@ -7,7 +7,6 @@ export type SaltResult = ReturnType<typeof getSalt>;
 export const getSalt = () => {
   const randomBytes = window.crypto.getRandomValues(new Uint8Array(32));
   const bytesBs58 = encode(randomBytes);
-  console.log({ bytesBs58, rb: [...randomBytes] });
   return { bytesBs58, randomBytes };
 };
 
