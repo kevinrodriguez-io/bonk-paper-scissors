@@ -1,5 +1,6 @@
 import { BN, web3 } from "@project-serum/anchor";
 import Link from "next/link";
+import { DateTime } from "luxon";
 import { formatNumber, hideMiddle } from "../lib/string";
 
 type GameCardProps = {
@@ -10,12 +11,14 @@ type GameCardProps = {
   status: string;
   mint: web3.PublicKey;
   amountToMatch: BN;
+  createdAt: BN;
   showGoToGame?: boolean;
 };
 
 export const GameCard = ({
   gameId,
   pubKey,
+  createdAt,
   firstPlayer,
   secondPlayer,
   status,
@@ -114,9 +117,17 @@ export const GameCard = ({
               )}
             </dd>
           </div>
+          <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt className="text-sm font-medium text-gray-500">Created at</dt>
+            <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+              {DateTime.fromSeconds(createdAt.toNumber()).toFormat(
+                "yyyy-MM-dd HH:mm:ss"
+              )}
+            </dd>
+          </div>
 
           {secondPlayer ? (
-            <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">Opponent</dt>
               <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
                 <a

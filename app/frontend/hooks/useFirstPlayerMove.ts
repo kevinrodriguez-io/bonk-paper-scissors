@@ -6,7 +6,7 @@ import {
 } from "@solana/spl-token";
 import { IDL } from "../resources/idl/bonk_paper_scissors";
 import { getBPSProgramId, getMintPubKey } from "../constants/constants";
-import { findTokenAccountPubKeyForMintByOwnerPublicKey } from "../lib/solana/findTokenAccountForMint";
+import { findTokenAccountPKForMintByOwner } from "../lib/solana/findTokenAccountForMint";
 import { getHash, SaltResult } from "../lib/crypto/crypto";
 import { Choice } from "../types/Choice";
 import { getEscrowPDA, getGamePDA } from "../lib/solana/pdaHelpers";
@@ -36,7 +36,7 @@ const firstPlayerMove = async (
 
   const mint = getMintPubKey();
 
-  const playerATA = await findTokenAccountPubKeyForMintByOwnerPublicKey(
+  const playerATA = await findTokenAccountPKForMintByOwner(
     provider.connection,
     provider.wallet.publicKey,
     mint
@@ -73,9 +73,9 @@ const firstPlayerMove = async (
 
   const txId = await program.provider.sendAndConfirm!(tx, [], {
     skipPreflight: true,
-  })
+  });
 
-  return { txId, gamePDA, choice, salt };
+  return { txId, gamePDA, choice, salt, walletPubKey: wallet.publicKey };
 };
 
 type FirstPlayerMoveHookInput = {

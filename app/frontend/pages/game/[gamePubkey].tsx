@@ -13,19 +13,19 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { z } from "zod";
 
+import type { ChoiceLocalStorageResult } from "../../types/ChoiceLocalStorageResult";
 import { ConnectWalletCard } from "../../components/ConnectWalletCard";
 import { GameCard } from "../../components/GameCard";
 import { Layout } from "../../components/Layout";
 import { LoadingCard } from "../../components/LoadingCard";
 import { NotFoundCard } from "../../components/NotFoundCard";
 import { Spinner } from "../../components/Spinner";
-import { MINT } from "../../constants/constants";
 import { useAdminCloseStaleGame } from "../../hooks/useAdminCloseStaleGame";
 import { useCancelGame } from "../../hooks/useCancelGame";
 import { useGame } from "../../hooks/useGame";
 import { useGameChangesListener } from "../../hooks/useGameSubscription";
 import { useIsAdminWallet } from "../../hooks/useIsAdminWallet";
-import { useIsGameCreator } from "../../hooks/useIsGameCreator";
+import { useWalletMatchesPubkey } from "../../hooks/useWalletMatchesPubkey";
 import { useSecondPlayerMove } from "../../hooks/useSecondPlayerMove";
 import { getSalt, SaltResult } from "../../lib/crypto/crypto";
 import { getValueFromEnumVariant } from "../../lib/solana/getValueFromEnumVariant";
@@ -33,6 +33,84 @@ import { getChoiceKey, getSaltKey } from "../../lib/storage";
 import { capitalize, splitLowerCaseItemIntoWords } from "../../lib/string";
 import { CanBeLoading } from "../../types/CanBeLoading";
 import { Choice } from "../../types/Choice";
+import { useReadLocalStorage } from "usehooks-ts";
+import { GameAccount } from "../../types/GameAccount";
+import { useReveal } from "../../hooks/useReveal";
+
+const RevealCard = ({
+  game,
+  gamePubkey,
+}: {
+  game: GameAccount;
+  gamePubkey: string;
+}) => {
+  const wallet = useAnchorWallet();
+  const { connection } = useConnection();
+  const isFirstPlayer = useWalletMatchesPubkey(game.firstPlayer.toBase58());
+  const isSecondPlayer = useWalletMatchesPubkey(game.secondPlayer?.toBase58()!);
+  const choice = useReadLocalStorage<ChoiceLocalStorageResult>(
+    getChoiceKey(gamePubkey, wallet?.publicKey?.toBase58()!)
+  );
+  const salt = useReadLocalStorage<SaltResult>(
+    getSaltKey(gamePubkey, wallet?.publicKey?.toBase58()!)
+  );
+  const reveal = useReveal({
+    onSuccess: (txId) => {},
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const handleReveal = () => {
+    reveal.reveal({
+      dependencies: {
+        connection,
+        wallet: wallet!,
+      },
+      payload: {
+        gamePubKey: new web3.PublicKey(gamePubkey),
+        choice: choice!.choice,
+        salt: [...salt!.randomBytes],
+      },
+    });
+  };
+
+  const didPlayerAlreadyReveal =
+    (isFirstPlayer && game.firstPlayerRevealedAt) ||
+    (isSecondPlayer && game.secondPlayerRevealedAt);
+
+  const canReveal = !didPlayerAlreadyReveal && !!choice && !!salt;
+
+  return (
+    <div className="space-y-6 mt-8">
+      <div className="bg-white px-4 py-5 shadow sm:rounded-lg sm:p-6">
+        <div className="md:grid md:grid-cols-3 md:gap-6">
+          <div className="md:col-span-1">
+            <h3 className="text-lg font-medium leading-6 text-gray-900">
+              Revealing your choice
+            </h3>
+            <p className="mt-1 text-sm text-gray-500 text-justify">
+              Remember to always reveal your choice. If you don't, you will lose
+              the game after 7 days.
+            </p>
+          </div>
+          <div className="mt-5 space-y-6 md:col-span-2 md:mt-0">
+            {canReveal ? (
+              <button
+                type="button"
+                onClick={handleReveal}
+                className="items-center inline-flex justify-center rounded-md border border-transparent bg-primary-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              >
+                <img src="/doggo.png" className="h-6 w-6 mr-2" />
+                Reveal
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 type JoinCardProps = CanBeLoading & {
   onSuccess?: (salt: SaltResult, choice: Choice) => void;
@@ -225,14 +303,6 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
           </div>
         );
       });
-      localStorage.setItem(
-        getChoiceKey(gamePubkey, wallet!.publicKey.toBase58()),
-        choice!
-      );
-      localStorage.setItem(
-        getSaltKey(gamePubkey, wallet!.publicKey.toBase58()),
-        JSON.stringify(salt)
-      );
     },
     onError: (err) => toast.error(err.message),
   });
@@ -254,21 +324,19 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
           </div>
         );
       });
-      localStorage.setItem(
-        getChoiceKey(gamePubkey, wallet!.publicKey.toBase58()),
-        choice!
-      );
-      localStorage.setItem(
-        getSaltKey(gamePubkey, wallet!.publicKey.toBase58()),
-        JSON.stringify(salt)
-      );
     },
     onError: (err) => toast.error(err.message),
   });
   const isAdminWallet = useIsAdminWallet();
-  const isGameCreator = useIsGameCreator(data?.firstPlayer.toBase58());
+  const isGameFirstPlayer = useWalletMatchesPubkey(
+    data?.firstPlayer.toBase58()
+  );
+  const isGameSecondPlayer = useWalletMatchesPubkey(
+    data?.secondPlayer?.toBase58()
+  );
+
   const secondPlayerMove = useSecondPlayerMove({
-    onSuccess: ({ txId, salt, gamePDA, choice }) => {
+    onSuccess: ({ txId, salt, gamePDA, choice, walletPubKey }) => {
       toast.success(
         () => {
           const url = `https://explorer.solana.com/tx/${txId}`;
@@ -289,12 +357,15 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
         { autoClose: false }
       );
       localStorage.setItem(
-        getChoiceKey(gamePDA.toBase58(), wallet!.publicKey.toBase58()),
-        choice!
+        getChoiceKey(gamePDA.toBase58(), walletPubKey.toBase58()),
+        JSON.stringify({ choice: choice! })
       );
       localStorage.setItem(
-        getSaltKey(gamePDA.toBase58(), wallet!.publicKey.toBase58()),
-        JSON.stringify(salt)
+        getSaltKey(gamePDA.toBase58(), walletPubKey.toBase58()),
+        JSON.stringify({
+          bytesBs58: salt!.bytesBs58,
+          randomBytes: [...salt!.randomBytes],
+        })
       );
     },
     onError: (err) => toast.error(err.message, { autoClose: false }),
@@ -302,6 +373,7 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
 
   useGameChangesListener(new web3.PublicKey(gamePubkey), (acc) => {
     mutate(acc);
+    toast("The game was updated!");
   });
 
   useEffect(() => {
@@ -354,9 +426,7 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
   }
 
   const gameIsJoinable =
-    publicKey &&
-    !data.firstPlayer.equals(publicKey) &&
-    data.gameState.createdAndWaitingForStart;
+    publicKey && !isGameFirstPlayer && data.gameState.createdAndWaitingForStart;
 
   const stuffIsLoading = secondPlayerMove.isMutating || isLoading;
 
@@ -364,13 +434,20 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
     isAdminWallet && data.gameState.startedAndWaitingForReveal;
 
   const isCancellable =
-    isGameCreator && data.gameState.createdAndWaitingForStart;
+    isGameFirstPlayer && data.gameState.createdAndWaitingForStart;
+
+  const isRevealable =
+    data.gameState.startedAndWaitingForReveal &&
+    data.firstPlayerHash &&
+    data.secondPlayerHash &&
+    (isGameFirstPlayer || isGameSecondPlayer);
 
   return (
     <>
       <GameCard
         pubKey={new web3.PublicKey(gamePubkey)}
         gameId={data.gameId}
+        createdAt={data.createdAt}
         firstPlayer={data.firstPlayer}
         mint={data.mint}
         amountToMatch={data.amountToMatch}
@@ -422,6 +499,7 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
           </button>
         </div>
       ) : null}
+      {isRevealable ? <RevealCard game={data} gamePubkey={gamePubkey} /> : null}
     </>
   );
 };

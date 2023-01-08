@@ -65,7 +65,7 @@ pub fn first_player_move(
     amount: u64,
     first_player_hash: [u8; 32], // Choice + Salt
 ) -> Result<()> {
-    // let clock = Clock::get()?;
+    let clock = Clock::get()?;
     let game = &mut ctx.accounts.game;
     let first_player_token_account = &mut ctx.accounts.first_player_token_account;
     let first_player_escrow = &mut ctx.accounts.first_player_escrow;
@@ -93,7 +93,7 @@ pub fn first_player_move(
         game_id,
         mint,
         amount,
-        // clock.unix_timestamp,
+        clock.unix_timestamp,
         first_player,
         first_player_hash,
         first_player_escrow.key(),

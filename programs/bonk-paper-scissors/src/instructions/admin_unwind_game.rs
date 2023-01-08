@@ -58,10 +58,16 @@ pub struct AdminUnwindStaleGame<'info> {
     pub second_player_token_account: Box<Account<'info, TokenAccount>>,
 
     /// CHECK: No use to check this. (Checked by CPI)
-    #[account(mut)]
+    #[account(
+        mut,
+        address = game.first_player,
+    )]
     pub first_player: AccountInfo<'info>,
     /// CHECK: No use to check this. (Checked by CPI)
-    #[account(mut)]
+    #[account(
+        mut,
+        address = game.second_player.unwrap(),
+    )]
     pub second_player: AccountInfo<'info>,
 
     // Program upgrade authority

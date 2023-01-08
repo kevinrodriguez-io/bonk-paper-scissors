@@ -35,6 +35,7 @@ const Home: NextPage = () => {
                   showGoToGame
                   pubKey={game.publicKey}
                   gameId={game.account.gameId}
+                  createdAt={game.account.createdAt}
                   firstPlayer={game.account.firstPlayer}
                   mint={game.account.mint}
                   amountToMatch={game.account.amountToMatch}

@@ -6,7 +6,7 @@ import {
 } from "@solana/spl-token";
 import { IDL } from "../resources/idl/bonk_paper_scissors";
 import { getBPSProgramId } from "../constants/constants";
-import { findTokenAccountPubKeyForMintByOwnerPublicKey } from "../lib/solana/findTokenAccountForMint";
+import { findTokenAccountPKForMintByOwner } from "../lib/solana/findTokenAccountForMint";
 import { AnchorHookDependencies } from "../types/AnchorHookDependencies";
 
 type AdminCloseStaleGamePayload = {
@@ -46,7 +46,7 @@ const adminCloseStaleGame = async (
   }
 
   const mint = game.mint;
-  const firstPlayerATA = await findTokenAccountPubKeyForMintByOwnerPublicKey(
+  const firstPlayerATA = await findTokenAccountPKForMintByOwner(
     provider.connection,
     game.firstPlayer,
     mint
@@ -56,7 +56,7 @@ const adminCloseStaleGame = async (
     throw new Error("No ATA found");
   }
 
-  const secondPlayerATA = await findTokenAccountPubKeyForMintByOwnerPublicKey(
+  const secondPlayerATA = await findTokenAccountPKForMintByOwner(
     provider.connection,
     game.secondPlayer!,
     mint

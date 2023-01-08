@@ -491,6 +491,10 @@ export type BonkPaperScissors = {
             "type": {
               "defined": "GameState"
             }
+          },
+          {
+            "name": "createdAt",
+            "type": "i64"
           }
         ]
       }
@@ -563,6 +567,11 @@ export type BonkPaperScissors = {
       "code": 6004,
       "name": "FirstPlayerCantJoinAsSecondPlayer",
       "msg": "First Player Can't Join as Second Player"
+    },
+    {
+      "code": 6005,
+      "name": "AmountExceedsBalance",
+      "msg": "Amount exceeds balance"
     }
   ]
 };
@@ -1060,6 +1069,10 @@ export const IDL: BonkPaperScissors = {
             "type": {
               "defined": "GameState"
             }
+          },
+          {
+            "name": "createdAt",
+            "type": "i64"
           }
         ]
       }
@@ -1132,6 +1145,11 @@ export const IDL: BonkPaperScissors = {
       "code": 6004,
       "name": "FirstPlayerCantJoinAsSecondPlayer",
       "msg": "First Player Can't Join as Second Player"
+    },
+    {
+      "code": 6005,
+      "name": "AmountExceedsBalance",
+      "msg": "Amount exceeds balance"
     }
   ]
 };

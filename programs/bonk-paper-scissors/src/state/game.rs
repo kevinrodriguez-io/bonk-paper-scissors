@@ -44,7 +44,7 @@ pub struct Game {
     pub drawn_at: Option<i64>,
 
     pub game_state: GameState,
-    // pub created_at: i64,
+    pub created_at: i64,
 }
 
 impl Game {
@@ -74,8 +74,8 @@ impl Game {
         1 + 8 + // drawn_at
 
         1 + // game_state
-        // 8 + // created_at
-        128 // padding
+        8 + // created_at
+        256 // padding
     }
 
     pub fn new(
@@ -83,7 +83,7 @@ impl Game {
         game_id: String,
         mint: Pubkey,
         amount_to_match: u64,
-        // created_at: i64,
+        created_at: i64,
         first_player: Pubkey,
         first_player_hash: [u8; 32],
         first_player_escrow_address: Pubkey,
@@ -93,7 +93,7 @@ impl Game {
             game_id,
             mint,
             amount_to_match,
-            // created_at,
+            created_at,
 
             first_player,
             first_player_hash,

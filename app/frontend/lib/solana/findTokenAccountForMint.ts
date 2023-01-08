@@ -3,7 +3,7 @@ import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { getMintPubKey } from "../../constants/constants";
 import { TokenAccounts } from "../../types/Token";
 
-export const findTokenAccountPubKeyForMintByOwnerPublicKey = async (
+export const findTokenAccountPKForMintByOwner = async (
   connection: web3.Connection,
   ownerPublicKey: web3.PublicKey,
   mint: web3.PublicKey = getMintPubKey()

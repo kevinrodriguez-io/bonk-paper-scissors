@@ -323,7 +323,6 @@ describe("bonk-paper-scissors: cancelled", () => {
   let ataOne: anchor.web3.PublicKey;
   let escrowOne: anchor.web3.PublicKey;
   let gamePDA: anchor.web3.PublicKey;
-  let playerOneSalt: number[];
   let playerOneHash: number[];
 
   it("stage: first_player_move", async () => {
@@ -359,7 +358,6 @@ describe("bonk-paper-scissors: cancelled", () => {
     escrowOne = getEscrowPDAResult[0];
 
     const salt = generateSalt();
-    playerOneSalt = [...salt];
     const hash = generateHash([...salt], 1);
     playerOneHash = [...hash];
 
@@ -417,7 +415,6 @@ describe("bonk-paper-scissors: safety", () => {
   let ataOne: anchor.web3.PublicKey;
   let escrowOne: anchor.web3.PublicKey;
   let gamePDA: anchor.web3.PublicKey;
-  let playerOneSalt: number[];
   let playerOneHash: number[];
 
   it("stage: first_player_move", async () => {
@@ -453,7 +450,6 @@ describe("bonk-paper-scissors: safety", () => {
     escrowOne = getEscrowPDAResult[0];
 
     const salt = generateSalt();
-    playerOneSalt = [...salt];
     const hash = generateHash([...salt], 1);
     playerOneHash = [...hash];
 

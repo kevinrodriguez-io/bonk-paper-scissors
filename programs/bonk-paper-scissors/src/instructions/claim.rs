@@ -62,10 +62,16 @@ pub struct Claim<'info> {
     pub mint: Account<'info, Mint>,
 
     /// CHECK: No use to check this. (Checked by CPI)
-    #[account(mut)]
+    #[account(
+        mut,
+        address = game.first_player
+    )]
     pub first_player: AccountInfo<'info>,
     /// CHECK: No use to check this. (Checked by CPI)
-    #[account(mut)]
+    #[account(
+        mut,
+        address = game.first_player
+    )]
     pub second_player: AccountInfo<'info>,
 
     #[account(mut)]

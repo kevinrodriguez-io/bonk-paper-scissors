@@ -3,7 +3,7 @@ import { web3, AnchorProvider, Program } from "@project-serum/anchor";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { IDL } from "../resources/idl/bonk_paper_scissors";
 import { getBPSProgramId } from "../constants/constants";
-import { findTokenAccountPubKeyForMintByOwnerPublicKey } from "../lib/solana/findTokenAccountForMint";
+import { findTokenAccountPKForMintByOwner } from "../lib/solana/findTokenAccountForMint";
 import { AnchorHookDependencies } from "../types/AnchorHookDependencies";
 
 type CancelGamePayload = {
@@ -33,7 +33,7 @@ const cancelGame = async (key: string, adminCloseStaleGame: CancelGame) => {
   }
 
   const mint = game.mint;
-  const firstPlayerATA = await findTokenAccountPubKeyForMintByOwnerPublicKey(
+  const firstPlayerATA = await findTokenAccountPKForMintByOwner(
     provider.connection,
     game.firstPlayer,
     mint

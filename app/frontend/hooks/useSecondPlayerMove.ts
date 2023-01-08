@@ -6,7 +6,7 @@ import {
 } from "@solana/spl-token";
 import { IDL } from "../resources/idl/bonk_paper_scissors";
 import { getBPSProgramId, getMintPubKey } from "../constants/constants";
-import { findTokenAccountPubKeyForMintByOwnerPublicKey } from "../lib/solana/findTokenAccountForMint";
+import { findTokenAccountPKForMintByOwner } from "../lib/solana/findTokenAccountForMint";
 import { getHash, SaltResult } from "../lib/crypto/crypto";
 import { Choice } from "../types/Choice";
 import { getEscrowPDA, getGamePDA } from "../lib/solana/pdaHelpers";
@@ -37,7 +37,7 @@ const secondPlayerMove = async (
   const game = await program.account.game.fetch(gamePubKey);
 
   const mint = game.mint;
-  const playerATA = await findTokenAccountPubKeyForMintByOwnerPublicKey(
+  const playerATA = await findTokenAccountPKForMintByOwner(
     provider.connection,
     provider.wallet.publicKey,
     mint
@@ -69,7 +69,13 @@ const secondPlayerMove = async (
     })
     .rpc();
 
-  return { txId, gamePDA: gamePubKey, salt, choice };
+  return {
+    txId,
+    gamePDA: gamePubKey,
+    salt,
+    choice,
+    walletPubKey: wallet.publicKey,
+  };
 };
 
 type SecondPlayerMoveHookInput = {

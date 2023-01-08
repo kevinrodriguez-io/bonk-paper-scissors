@@ -1,6 +1,15 @@
 use anchor_lang::prelude::*;
 
-use crate::{constants::GAME, state::{Game, Choice, GameState}, error::BPSError};
+use crate::{
+    constants::GAME,
+    error::BPSError,
+    state::{Choice, Game, GameState},
+};
+
+fn vec_to_arr_of_n<T, const N: usize>(v: Vec<T>) -> [T; N] {
+    v.try_into()
+        .unwrap_or_else(|v: Vec<T>| panic!("Expected a Vec of length {} but it was {}", N, v.len()))
+}
 
 #[derive(Accounts)]
 pub struct Reveal<'info> {
@@ -18,11 +27,7 @@ pub struct Reveal<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn reveal(
-    ctx: Context<Reveal>,
-    choice: Choice,
-    salt: [u8; 32],
-) -> Result<()> {
+pub fn reveal(ctx: Context<Reveal>, choice: Choice, salt: [u8; 32]) -> Result<()> {
     let clock = Clock::get()?;
     let game = &mut ctx.accounts.game;
 
@@ -38,7 +43,8 @@ pub fn reveal(
             game.first_player_choice.is_none(),
             BPSError::PlayerAlreadyMoved
         );
-        let created_hash = anchor_lang::solana_program::hash::hashv(&[&[choice_bytes], &salt]);
+        let val_to_hash = vec_to_arr_of_n::<u8, 33>([&[choice_bytes], &salt[..]].concat());
+        let created_hash = anchor_lang::solana_program::hash::hashv(&[&val_to_hash]);
         let stored_hash =
             anchor_lang::solana_program::hash::Hash::new_from_array(game.first_player_hash);
         require_eq!(created_hash, stored_hash, BPSError::InvalidHash);
@@ -48,7 +54,8 @@ pub fn reveal(
             game.second_player_choice.is_none(),
             BPSError::PlayerAlreadyMoved
         );
-        let created_hash = anchor_lang::solana_program::hash::hashv(&[&[choice_bytes], &salt]);
+        let val_to_hash = vec_to_arr_of_n::<u8, 33>([&[choice_bytes], &salt[..]].concat());
+        let created_hash = anchor_lang::solana_program::hash::hashv(&[&val_to_hash]);
         let stored_hash = anchor_lang::solana_program::hash::Hash::new_from_array(
             game.second_player_hash.unwrap(),
         );
