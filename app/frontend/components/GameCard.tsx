@@ -10,6 +10,7 @@ type GameCardProps = {
   pubKey: web3.PublicKey;
   firstPlayer: web3.PublicKey;
   secondPlayer?: web3.PublicKey;
+  winner?: web3.PublicKey;
   status: string;
   mint: web3.PublicKey;
   amountToMatch: BN;
@@ -26,6 +27,7 @@ export const GameCard = ({
   createdAt,
   firstPlayer,
   secondPlayer,
+  winner,
   status,
   mint,
   amountToMatch,
@@ -40,6 +42,9 @@ export const GameCard = ({
   const firstPlayerLink = `https://explorer.solana.com/address/${firstPlayer.toBase58()}`;
   const secondPlayerLink = secondPlayer
     ? `https://explorer.solana.com/address/${secondPlayer.toBase58()}`
+    : null;
+  const winnerLink = winner
+    ? `https://explorer.solana.com/address/${winner.toBase58()}`
     : null;
   const mintLink = `https://explorer.solana.com/address/${mint.toBase58()}`;
 
@@ -87,6 +92,23 @@ export const GameCard = ({
                 </a>
               ) : (
                 "None"
+              )}
+            </dd>
+          </div>
+          <div className="bg-white px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt className="text-sm font-medium text-gray-500">Winner</dt>
+            <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+              {winner ? (
+                <a
+                  href={winnerLink!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                >
+                  {hideMiddle(winner.toBase58())}
+                </a>
+              ) : (
+                "To be defined"
               )}
             </dd>
           </div>

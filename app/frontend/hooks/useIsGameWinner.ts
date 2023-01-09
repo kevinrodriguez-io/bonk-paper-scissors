@@ -38,11 +38,13 @@ export const useWalletIsGameWinnerButHasntClaimed = (game: GameAccount) => {
   const { publicKey } = useWallet();
   if (!publicKey) return false;
   return (
-    game.winner?.equals(publicKey) &&
     !game.gameState.firstPlayerWon &&
     !game.gameState.secondPlayerWon &&
     !game.gameState.draw &&
-    calculateWinnerOnFrontend(game)?.equals(publicKey)
+    game.gameState.startedAndWaitingForReveal &&
+    calculateWinnerOnFrontend(game)?.equals(publicKey) &&
+    (game.firstPlayer?.equals(publicKey) ||
+      game.secondPlayer?.equals(publicKey))
   );
 };
 
@@ -50,10 +52,12 @@ export const useWalletIsGameLoserButHasntClaimed = (game: GameAccount) => {
   const { publicKey } = useWallet();
   if (!publicKey) return false;
   return (
-    game.loser?.equals(publicKey) &&
     !game.gameState.firstPlayerWon &&
     !game.gameState.secondPlayerWon &&
     !game.gameState.draw &&
-    !calculateWinnerOnFrontend(game)?.equals(publicKey)
+    game.gameState.startedAndWaitingForReveal &&
+    !calculateWinnerOnFrontend(game)?.equals(publicKey) &&
+    (game.firstPlayer?.equals(publicKey) ||
+      game.secondPlayer?.equals(publicKey))
   );
 };

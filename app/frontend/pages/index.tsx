@@ -32,9 +32,10 @@ const Home: NextPage = () => {
               {data.map((game) => (
                 <>
                   <GameCard
-                    className="shadow-xl shadow-primary-500"
+                    className="bg-gray-100 shadow-xl shadow-primary-500"
                     key={game.publicKey.toBase58()}
                     showGoToGame
+                    winner={game.account.winner ?? undefined}
                     firstPlayerChoice={
                       game.account.firstPlayerChoice
                         ? capitalize(

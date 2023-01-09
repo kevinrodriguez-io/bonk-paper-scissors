@@ -37,10 +37,12 @@ import { useReadLocalStorage } from "usehooks-ts";
 import { GameAccount } from "../../types/GameAccount";
 import { useReveal } from "../../hooks/useReveal";
 import {
+  useWalletIsGameLoserButHasntClaimed,
   useWalletIsGameWinner,
   useWalletIsGameWinnerButHasntClaimed,
 } from "../../hooks/useIsGameWinner";
 import { useClaimGame } from "../../hooks/useClaimGame";
+import { SuccessModal } from "../../components/SuccessModal";
 
 type ClaimCardProps = {
   game: GameAccount;
@@ -48,11 +50,14 @@ type ClaimCardProps = {
 };
 
 const ClaimCard = ({ game, gamePubkey }: ClaimCardProps) => {
-  const isWinnerButHasntClaimed = useWalletIsGameWinnerButHasntClaimed(game);
-  const isWinner = useWalletIsGameWinner(game);
+  const isWinnerButGameHasntClaimed =
+    useWalletIsGameWinnerButHasntClaimed(game);
+  const isLoserButGameHasntBeenClaimed =
+    useWalletIsGameLoserButHasntClaimed(game);
   const wallet = useWallet();
   const anchorWallet = useAnchorWallet();
   const { connection } = useConnection();
+  const [showModal, setShowModal] = useState(false);
   const claimGame = useClaimGame({
     onSuccess: (txId) => {
       toast.success(() => {
@@ -93,32 +98,62 @@ const ClaimCard = ({ game, gamePubkey }: ClaimCardProps) => {
     });
   };
 
+  const isGameClaimed = !!game.winner;
+
   return (
-    <div className="space-y-6 mt-8">
-      <div className="bg-white px-4 py-5 shadow sm:rounded-lg sm:p-6">
-        <div className="md:grid md:grid-cols-3 md:gap-6">
-          <div className="md:col-span-1">
-            <h3 className="text-lg font-medium leading-6 text-gray-900">
-              Claiming a game prize
-            </h3>
-            <p className="mt-1 text-sm text-gray-500 text-justify">
-              By claiming a game prize, the winner will receive the prize and
-              the loser will lose their stake, also burning a 10% fee.
-            </p>
-          </div>
-          <div className="mt-5 space-y-6 md:col-span-2 md:mt-0">
-            <button
-              type="button"
-              onClick={handleClaim}
-              className="items-center inline-flex justify-center rounded-md border border-transparent bg-primary-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-            >
-              <img src="/doggo.png" className="h-6 w-6 mr-2" />
-              Claim
-            </button>
+    <>
+      {!isGameClaimed ? (
+        <SuccessModal
+          setOpen={setShowModal}
+          open={showModal}
+          message="The pot has been claimed! If you're the winner, then check your wallet for the winnings."
+          title="Claimed!"
+          buttonTitle="Close"
+          onButtonClick={() => {
+            setShowModal(false);
+          }}
+        />
+      ) : null}
+      <div className="space-y-6 mt-8">
+        <div className="bg-white px-4 py-5 shadow sm:rounded-lg sm:p-6">
+          <div className="md:grid md:grid-cols-3 md:gap-6">
+            <div className="md:col-span-1">
+              <h3 className="text-lg font-medium leading-6 text-gray-900">
+                Claiming a game prize
+              </h3>
+              <p className="mt-1 text-sm text-gray-500 text-justify">
+                By claiming a game prize, the winner will receive the prize and
+                the loser will lose their stake, also burning a 10% fee.
+              </p>
+            </div>
+            <div className="mt-5 space-y-6 md:col-span-1 md:mt-0">
+              {isWinnerButGameHasntClaimed ? (
+                <div className="mt-5 space-y-6 md:col-span-1 md:mt-0 text-green-800 text-justify">
+                  Looks like you won this game! Claim your prize by clicking the
+                  claim button.
+                </div>
+              ) : null}
+              {isLoserButGameHasntBeenClaimed ? (
+                <div className="mt-5 space-y-6 md:col-span-1 md:mt-0 text-gray-800 text-justify">
+                  Sorry, but it looks like you lost this game!
+                </div>
+              ) : null}
+            </div>
+            <div className="mt-5 space-y-6 md:col-span-1 md:mt-0">
+              <button
+                type="button"
+                onClick={handleClaim}
+                disabled={claimGame.isMutating}
+                className="items-center inline-flex justify-center rounded-md border border-transparent bg-primary-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              >
+                <img src="/doggo.png" className="h-6 w-6 mr-2" />
+                Settle pot
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -586,6 +621,7 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
       <GameCard
         className="shadow"
         pubKey={new web3.PublicKey(gamePubkey)}
+        winner={data.winner ?? undefined}
         firstPlayerChoice={
           data.firstPlayerChoice
             ? capitalize(
