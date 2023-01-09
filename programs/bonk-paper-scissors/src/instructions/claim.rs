@@ -70,7 +70,7 @@ pub struct Claim<'info> {
     /// CHECK: No use to check this. (Checked by CPI)
     #[account(
         mut,
-        address = game.first_player
+        address = game.second_player.unwrap()
     )]
     pub second_player: AccountInfo<'info>,
 

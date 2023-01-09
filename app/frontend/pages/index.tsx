@@ -28,27 +28,54 @@ const Home: NextPage = () => {
             </div>
           ) : null}
           {data?.length ? (
-            <div className="grid grid-flow-row-dense">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
               {data.map((game) => (
-                <GameCard
-                  key={game.publicKey.toBase58()}
-                  showGoToGame
-                  pubKey={game.publicKey}
-                  gameId={game.account.gameId}
-                  createdAt={game.account.createdAt}
-                  firstPlayer={game.account.firstPlayer}
-                  mint={game.account.mint}
-                  amountToMatch={game.account.amountToMatch}
-                  secondPlayer={game.account.secondPlayer ?? undefined}
-                  status={capitalize(
-                    splitLowerCaseItemIntoWords(
-                      getValueFromEnumVariant(game.account.gameState)
-                    )
-                  )}
-                />
+                <>
+                  <GameCard
+                    className="shadow-xl shadow-primary-500"
+                    key={game.publicKey.toBase58()}
+                    showGoToGame
+                    firstPlayerChoice={
+                      game.account.firstPlayerChoice
+                        ? capitalize(
+                            splitLowerCaseItemIntoWords(
+                              getValueFromEnumVariant(
+                                game.account.firstPlayerChoice
+                              )
+                            )
+                          )
+                        : undefined
+                    }
+                    secondPlayerChoice={
+                      game.account.secondPlayerChoice
+                        ? capitalize(
+                            splitLowerCaseItemIntoWords(
+                              getValueFromEnumVariant(
+                                game.account.secondPlayerChoice
+                              )
+                            )
+                          )
+                        : undefined
+                    }
+                    pubKey={game.publicKey}
+                    gameId={game.account.gameId}
+                    createdAt={game.account.createdAt}
+                    firstPlayer={game.account.firstPlayer}
+                    mint={game.account.mint}
+                    amountToMatch={game.account.amountToMatch}
+                    secondPlayer={game.account.secondPlayer ?? undefined}
+                    status={capitalize(
+                      splitLowerCaseItemIntoWords(
+                        getValueFromEnumVariant(game.account.gameState)
+                      )
+                    )}
+                  />
+                </>
               ))}
             </div>
-          ) : <NoGamesCard />}
+          ) : (
+            <NoGamesCard />
+          )}
         </div>
       </Layout>
     </>

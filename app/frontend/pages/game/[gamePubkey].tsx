@@ -36,6 +36,91 @@ import { Choice } from "../../types/Choice";
 import { useReadLocalStorage } from "usehooks-ts";
 import { GameAccount } from "../../types/GameAccount";
 import { useReveal } from "../../hooks/useReveal";
+import {
+  useWalletIsGameWinner,
+  useWalletIsGameWinnerButHasntClaimed,
+} from "../../hooks/useIsGameWinner";
+import { useClaimGame } from "../../hooks/useClaimGame";
+
+type ClaimCardProps = {
+  game: GameAccount;
+  gamePubkey: string;
+};
+
+const ClaimCard = ({ game, gamePubkey }: ClaimCardProps) => {
+  const isWinnerButHasntClaimed = useWalletIsGameWinnerButHasntClaimed(game);
+  const isWinner = useWalletIsGameWinner(game);
+  const wallet = useWallet();
+  const anchorWallet = useAnchorWallet();
+  const { connection } = useConnection();
+  const claimGame = useClaimGame({
+    onSuccess: (txId) => {
+      toast.success(() => {
+        const url = `https://explorer.solana.com/tx/${txId}`;
+        return (
+          <div className="flex items-center space-x-2">
+            <div>Claimed!</div>
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-200 underline"
+            >
+              View on Solana Explorer
+            </a>
+          </div>
+        );
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+  useEffect(() => {
+    if (game.winner?.equals(anchorWallet?.publicKey!)) {
+    }
+  }, [game.winner]);
+
+  const handleClaim = () => {
+    claimGame.claimGame({
+      dependencies: {
+        connection: connection,
+        wallet: anchorWallet!,
+      },
+      payload: {
+        gamePubKey: new web3.PublicKey(gamePubkey),
+      },
+    });
+  };
+
+  return (
+    <div className="space-y-6 mt-8">
+      <div className="bg-white px-4 py-5 shadow sm:rounded-lg sm:p-6">
+        <div className="md:grid md:grid-cols-3 md:gap-6">
+          <div className="md:col-span-1">
+            <h3 className="text-lg font-medium leading-6 text-gray-900">
+              Claiming a game prize
+            </h3>
+            <p className="mt-1 text-sm text-gray-500 text-justify">
+              By claiming a game prize, the winner will receive the prize and
+              the loser will lose their stake, also burning a 10% fee.
+            </p>
+          </div>
+          <div className="mt-5 space-y-6 md:col-span-2 md:mt-0">
+            <button
+              type="button"
+              onClick={handleClaim}
+              className="items-center inline-flex justify-center rounded-md border border-transparent bg-primary-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            >
+              <img src="/doggo.png" className="h-6 w-6 mr-2" />
+              Claim
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const RevealCard = ({
   game,
@@ -55,7 +140,24 @@ const RevealCard = ({
     getSaltKey(gamePubkey, wallet?.publicKey?.toBase58()!)
   );
   const reveal = useReveal({
-    onSuccess: (txId) => {},
+    onSuccess: (txId) => {
+      toast.success(() => {
+        const url = `https://explorer.solana.com/tx/${txId}`;
+        return (
+          <div className="flex items-center space-x-2">
+            <div>Revealed!</div>
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-200 underline"
+            >
+              View on Solana Explorer
+            </a>
+          </div>
+        );
+      });
+    },
     onError: (error) => {
       toast.error(error.message);
     },
@@ -79,6 +181,10 @@ const RevealCard = ({
     (isFirstPlayer && game.firstPlayerRevealedAt) ||
     (isSecondPlayer && game.secondPlayerRevealedAt);
 
+  const opponentRevealed =
+    (isFirstPlayer && game.secondPlayerRevealedAt) ||
+    (isSecondPlayer && game.firstPlayerRevealedAt);
+
   const canReveal = !didPlayerAlreadyReveal && !!choice && !!salt;
 
   return (
@@ -94,8 +200,8 @@ const RevealCard = ({
               the game after 7 days.
             </p>
           </div>
-          <div className="mt-5 space-y-6 md:col-span-2 md:mt-0">
-            {canReveal ? (
+          <div className="mt-5 space-y-6 md:col-span-1 md:mt-0">
+            {!didPlayerAlreadyReveal ? (
               <button
                 type="button"
                 onClick={handleReveal}
@@ -104,7 +210,31 @@ const RevealCard = ({
                 <img src="/doggo.png" className="h-6 w-6 mr-2" />
                 Reveal
               </button>
-            ) : null}
+            ) : (
+              <div className="flex items-center justify-center space-x-2">
+                <div className="text-sm text-green-500">
+                  You already revealed your choice
+                </div>
+                <img src="/doggo.png" className="h-6 w-6" />
+              </div>
+            )}
+          </div>
+          <div className="mt-5 space-y-6 md:col-span-1 md:mt-0">
+            {opponentRevealed ? (
+              <div className="flex items-center justify-center space-x-2">
+                <div className="text-sm text-green-500">
+                  Your opponent already revealed their choice
+                </div>
+                <img src="/doggo.png" className="h-6 w-6" />
+              </div>
+            ) : (
+              <div className="flex items-center justify-center space-x-2">
+                <div className="text-sm text-red-500">
+                  Your opponent hasn't revealed their choice yet
+                </div>
+                <img src="/doggo.png" className="h-6 w-6" />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -440,12 +570,40 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
     data.gameState.startedAndWaitingForReveal &&
     data.firstPlayerHash &&
     data.secondPlayerHash &&
+    !data.firstPlayerChoice &&
+    !data.secondPlayerChoice &&
     (isGameFirstPlayer || isGameSecondPlayer);
+
+  const isClaimable =
+    data.firstPlayerChoice &&
+    data.secondPlayerChoice &&
+    !data.gameState.draw &&
+    !data.gameState.firstPlayerWon &&
+    !data.gameState.secondPlayerWon;
 
   return (
     <>
       <GameCard
+        className="shadow"
         pubKey={new web3.PublicKey(gamePubkey)}
+        firstPlayerChoice={
+          data.firstPlayerChoice
+            ? capitalize(
+                splitLowerCaseItemIntoWords(
+                  getValueFromEnumVariant(data.firstPlayerChoice)
+                )
+              )
+            : undefined
+        }
+        secondPlayerChoice={
+          data.secondPlayerChoice
+            ? capitalize(
+                splitLowerCaseItemIntoWords(
+                  getValueFromEnumVariant(data.secondPlayerChoice)
+                )
+              )
+            : undefined
+        }
         gameId={data.gameId}
         createdAt={data.createdAt}
         firstPlayer={data.firstPlayer}
@@ -500,6 +658,7 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
         </div>
       ) : null}
       {isRevealable ? <RevealCard game={data} gamePubkey={gamePubkey} /> : null}
+      {isClaimable ? <ClaimCard game={data} gamePubkey={gamePubkey} /> : null}
     </>
   );
 };

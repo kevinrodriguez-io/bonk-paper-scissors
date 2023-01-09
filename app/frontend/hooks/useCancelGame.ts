@@ -15,9 +15,9 @@ type CancelGame = {
   dependencies: AnchorHookDependencies;
 };
 
-const cancelGame = async (key: string, adminCloseStaleGame: CancelGame) => {
-  const { connection, wallet } = adminCloseStaleGame.dependencies;
-  const { gamePubKey } = adminCloseStaleGame.payload;
+const cancelGame = async (key: string, cancelGame: CancelGame) => {
+  const { connection, wallet } = cancelGame.dependencies;
+  const { gamePubKey } = cancelGame.payload;
 
   const provider = new AnchorProvider(connection, wallet!, {});
   const program = new Program(IDL, getBPSProgramId(), provider);
