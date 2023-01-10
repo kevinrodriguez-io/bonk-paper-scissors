@@ -53,10 +53,10 @@ const getEscrowPDA = (
   );
 };
 
-const getReceiptPDA = (gamePDA: anchor.web3.PublicKey) => {
+const getBPSSettingsPDA = (programId: anchor.web3.PublicKey) => {
   return anchor.web3.PublicKey.findProgramAddressSync(
-    [gamePDA.toBytes(), b`receipt`],
-    gamePDA
+    [b`bps_settings`],
+    programId
   );
 };
 
@@ -128,6 +128,25 @@ const mintTo = async (
     result,
   };
 };
+
+describe("bonk-paper-scissors: init bps settings", async () => {
+  // Configure the client to use the local cluster.
+  anchor.setProvider(anchor.AnchorProvider.env());
+  const program = anchor.workspace
+    .BonkPaperScissors as Program<BonkPaperScissors>;
+  it("init_bps_settings", async () => {
+    const [bpsSettingsPDA] = getBPSSettingsPDA(program.programId);
+    const txId = await program.methods
+      .initBpsSettings(new anchor.BN(0))
+      .accountsStrict({
+        bpsSettings: bpsSettingsPDA,
+        signer: program.provider.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .rpc();
+    console.log("txId:", txId);
+  });
+});
 
 describe("bonk-paper-scissors: happy-path", async () => {
   // Configure the client to use the local cluster.
@@ -275,10 +294,11 @@ describe("bonk-paper-scissors: happy-path", async () => {
   });
 
   it("claim", async () => {
-    const [receiptPDA] = getReceiptPDA(gamePDA);
+    const [bpsSettingsPDA] = getBPSSettingsPDA(program.programId);
     const tx = await program.methods
       .claim()
       .accountsStrict({
+        bpsSettings: bpsSettingsPDA,
         firstPlayer: playerOne.publicKey,
         firstPlayerEscrow: escrowOne,
         firstPlayerTokenAccount: ataOne,
@@ -307,7 +327,6 @@ describe("bonk-paper-scissors: happy-path", async () => {
     if (result === null) {
       throw new Error("Game account not found");
     }
-    console.log("result: ", JSON.stringify(result, null, 2));
   });
 });
 

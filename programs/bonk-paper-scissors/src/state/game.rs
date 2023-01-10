@@ -1,7 +1,5 @@
 use anchor_lang::prelude::*;
 
-use crate::constants::SEVEN_DAYS;
-
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
 pub enum Choice {
     Bonk = 1,
@@ -140,7 +138,7 @@ impl Game {
     }
 
     // A Player forfeits if seven days has passed since it's opponent revealed its choice and he didn't reveal his choice
-    pub fn did_first_player_forfeit(&self, now: i64) -> bool {
+    pub fn did_first_player_forfeit(&self, now: i64, time_for_expiry: i64) -> bool {
         // This player did reveal, can't forfeit.
         if self.first_player_revealed_at.is_some() {
             return false;
@@ -150,11 +148,11 @@ impl Game {
             return false;
         }
         // This player didn't reveal, but seven days has passed since the other player revealed.
-        return self.second_player_revealed_at.unwrap() + SEVEN_DAYS < now;
+        return self.second_player_revealed_at.unwrap() + time_for_expiry < now;
     }
 
     // A Player forfeits if seven days has passed since it's opponent revealed its choice and he didn't reveal his choice
-    pub fn did_second_player_forfeit(&self, now: i64) -> bool {
+    pub fn did_second_player_forfeit(&self, now: i64, time_for_expiry: i64) -> bool {
         // This player did reveal, can't forfeit.
         if self.second_player_revealed_at.is_some() {
             return false;
@@ -164,7 +162,7 @@ impl Game {
             return false;
         }
         // This player didn't reveal, but seven days has passed since the other player revealed.
-        return self.first_player_revealed_at.unwrap() + SEVEN_DAYS < now;
+        return self.first_player_revealed_at.unwrap() + time_for_expiry < now;
     }
 
     pub fn set_claim_fields(

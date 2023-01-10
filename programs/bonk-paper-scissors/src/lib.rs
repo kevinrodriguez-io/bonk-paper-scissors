@@ -62,4 +62,17 @@ pub mod bonk_paper_scissors {
         instructions::admin_unwind_stale_game(ctx)
     }
 
+    pub fn init_bps_settings(
+        ctx: Context<InitBpsSettings>,
+        time_for_penalization: i64,
+    ) -> Result<()> {
+        instructions::init_bps_settings(ctx, time_for_penalization)
+    }
+
+    pub fn update_bps_settings(
+        ctx: Context<UpdateBpsSettings>,
+        time_for_penalization: i64,
+    ) -> Result<()> {
+        instructions::update_bps_settings(ctx, time_for_penalization)
+    }
 }

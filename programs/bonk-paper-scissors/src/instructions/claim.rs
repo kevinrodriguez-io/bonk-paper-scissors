@@ -5,9 +5,9 @@ use anchor_spl::{
 };
 
 use crate::{
-    constants::GAME,
+    constants::{BPS_SETTINGS, GAME},
     error::BPSError,
-    state::{Choice, Game, GameState},
+    state::{BpsSettings, Choice, Game, GameState},
 };
 
 #[derive(Accounts)]
@@ -22,6 +22,12 @@ pub struct Claim<'info> {
         bump = game.bump
     )]
     pub game: Box<Account<'info, Game>>,
+
+    #[account(
+        seeds = [BPS_SETTINGS.as_ref()],
+        bump = bps_settings.bump
+    )]
+    pub bps_settings: Account<'info, BpsSettings>,
 
     #[account(
         mut,
@@ -85,6 +91,7 @@ pub fn claim(ctx: Context<Claim>) -> Result<()> {
     let clock = Clock::get()?;
     let game = &mut ctx.accounts.game;
     let mint = &ctx.accounts.mint;
+    let bps_settings = &ctx.accounts.bps_settings;
     let first_player = &ctx.accounts.first_player;
     let first_player_escrow = &mut ctx.accounts.first_player_escrow;
     let first_player_token_account = &mut ctx.accounts.first_player_token_account;
@@ -112,7 +119,8 @@ pub fn claim(ctx: Context<Claim>) -> Result<()> {
     let first_player_choice = game.first_player_choice.as_ref().unwrap();
     let second_player_choice = game.second_player_choice.as_ref().unwrap();
 
-    let first_player_wins = game.did_second_player_forfeit(clock.unix_timestamp)
+    let first_player_wins = game
+        .did_second_player_forfeit(clock.unix_timestamp, bps_settings.time_for_penalization)
         || match (first_player_choice, second_player_choice) {
             (Choice::Bonk, Choice::Scissors) => true,
             (Choice::Paper, Choice::Bonk) => true,
@@ -120,7 +128,8 @@ pub fn claim(ctx: Context<Claim>) -> Result<()> {
             _ => false,
         };
 
-    let second_player_wins = game.did_first_player_forfeit(clock.unix_timestamp)
+    let second_player_wins = game
+        .did_first_player_forfeit(clock.unix_timestamp, bps_settings.time_for_penalization)
         || match (second_player_choice, first_player_choice) {
             (Choice::Bonk, Choice::Scissors) => true,
             (Choice::Paper, Choice::Bonk) => true,
@@ -184,7 +193,7 @@ pub fn claim(ctx: Context<Claim>) -> Result<()> {
             .with_signer(game_signer),
             amount_to_burn,
         )?; // Burn 10%
-        // ----- Burn 10% of each player's funds -----
+            // ----- Burn 10% of each player's funds -----
 
         game.game_state = GameState::FirstPlayerWon;
         game.set_claim_fields(

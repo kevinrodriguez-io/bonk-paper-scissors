@@ -219,6 +219,11 @@ export type BonkPaperScissors = {
           "isSigner": false
         },
         {
+          "name": "bpsSettings",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "firstPlayerEscrow",
           "isMut": true,
           "isSigner": false
@@ -364,9 +369,77 @@ export type BonkPaperScissors = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "initBpsSettings",
+      "accounts": [
+        {
+          "name": "bpsSettings",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "signer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "timeForPenalization",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "updateBpsSettings",
+      "accounts": [
+        {
+          "name": "bpsSettings",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "signer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "timeForPenalization",
+          "type": "i64"
+        }
+      ]
     }
   ],
   "accounts": [
+    {
+      "name": "bpsSettings",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "timeForPenalization",
+            "type": "i64"
+          }
+        ]
+      }
+    },
     {
       "name": "game",
       "type": {
@@ -797,6 +870,11 @@ export const IDL: BonkPaperScissors = {
           "isSigner": false
         },
         {
+          "name": "bpsSettings",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "firstPlayerEscrow",
           "isMut": true,
           "isSigner": false
@@ -942,9 +1020,77 @@ export const IDL: BonkPaperScissors = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "initBpsSettings",
+      "accounts": [
+        {
+          "name": "bpsSettings",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "signer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "timeForPenalization",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "updateBpsSettings",
+      "accounts": [
+        {
+          "name": "bpsSettings",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "signer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "timeForPenalization",
+          "type": "i64"
+        }
+      ]
     }
   ],
   "accounts": [
+    {
+      "name": "bpsSettings",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "timeForPenalization",
+            "type": "i64"
+          }
+        ]
+      }
+    },
     {
       "name": "game",
       "type": {
