@@ -49,5 +49,7 @@ export const useGamesByStatuses = (options: GameStatusOption[]) => {
         .map((o) => decapitalize(o))
         .includes(Object.keys(i.account.gameState)[0])
     );
+  }, {
+    refreshInterval: 10_000,
   });
 };

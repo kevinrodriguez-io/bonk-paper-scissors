@@ -334,31 +334,41 @@ const SecondCard = ({ onSuccess, onCancel, isLoading }: SecondCardProps) => {
                 )}
               </div>
               {choice && salt ? (
-                <div className="relative rounded-md shadow-sm">
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                    <ShieldCheckIcon
-                      className="h-5 w-5 text-green-400"
-                      aria-hidden="true"
-                    />
-                  </div>
-                  <input
-                    type="text"
-                    className="block w-full rounded-md border-gray-300 pl-10 focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                    placeholder="Game secret"
-                    value={secret?.secret ?? ""}
-                    readOnly
-                  />
-                  <div className="absolute inset-y-0 right-0 flex items-center">
-                    <a
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 cursor-pointer"
-                      href={secret?.link ?? "#"}
-                    >
-                      <EnvelopeIcon
-                        className="h-5 w-5 mr-1 text-gray-400"
+                <div>
+                  <label
+                    htmlFor="gameSecret"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Game secret (DO NOT SHARE)
+                  </label>
+                  <div className="relative rounded-md shadow-sm">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <ShieldCheckIcon
+                        className="h-5 w-5 text-green-400"
                         aria-hidden="true"
                       />
-                      Mail myself
-                    </a>
+                    </div>
+                    <input
+                      type="text"
+                      id="gameSecret"
+                      name="gameSecret"
+                      className="block w-full rounded-md border-gray-300 pl-10 focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                      placeholder="Game secret"
+                      value={secret?.secret ?? ""}
+                      readOnly
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center">
+                      <a
+                        className="h-full inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 cursor-pointer"
+                        href={secret?.link ?? "#"}
+                      >
+                        <EnvelopeIcon
+                          className="h-5 w-5 mr-1 text-gray-400"
+                          aria-hidden="true"
+                        />
+                        Mail myself
+                      </a>
+                    </div>
                   </div>
                 </div>
               ) : null}

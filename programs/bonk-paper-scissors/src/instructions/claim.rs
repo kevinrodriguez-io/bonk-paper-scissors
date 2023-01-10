@@ -41,7 +41,6 @@ pub struct Claim<'info> {
         mut,
         constraint = first_player_token_account.mint == game.mint,
         constraint = first_player_token_account.owner == first_player.key(),
-        constraint = first_player_token_account.amount >= game.amount_to_match
     )]
     pub first_player_token_account: Box<Account<'info, TokenAccount>>,
 
@@ -57,7 +56,6 @@ pub struct Claim<'info> {
         mut,
         constraint = second_player_token_account.mint == game.mint,
         constraint = second_player_token_account.owner == second_player.key(),
-        constraint = second_player_token_account.amount >= game.amount_to_match
     )]
     pub second_player_token_account: Box<Account<'info, TokenAccount>>,
 

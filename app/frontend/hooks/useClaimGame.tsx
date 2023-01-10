@@ -8,7 +8,7 @@ import { IDL } from "../resources/idl/bonk_paper_scissors";
 import { getBPSProgramId } from "../constants/constants";
 import { findTokenAccountPKForMintByOwner } from "../lib/solana/findTokenAccountForMint";
 import { AnchorHookDependencies } from "../types/AnchorHookDependencies";
-import { getEscrowPDA } from "../lib/solana/pdaHelpers";
+import { getBPSSettingsPDA, getEscrowPDA } from "../lib/solana/pdaHelpers";
 
 type ClaimGamePayload = {
   gamePubKey: web3.PublicKey;
@@ -69,9 +69,12 @@ const claimGame = async (key: string, claimGame: ClaimGame) => {
     program.programId
   );
 
+  const [bpsSettingsPDA] = getBPSSettingsPDA(program.programId);
+
   const txId = await program.methods
     .claim()
     .accountsStrict({
+      bpsSettings: bpsSettingsPDA,
       game: gamePubKey,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       firstPlayer: game.firstPlayer,

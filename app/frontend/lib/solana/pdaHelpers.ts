@@ -28,3 +28,10 @@ export const getEscrowPDA = (
     programId
   );
 };
+
+export const getBPSSettingsPDA = (programId: web3.PublicKey) => {
+  return web3.PublicKey.findProgramAddressSync(
+    [b`bps_settings`],
+    programId
+  );
+};

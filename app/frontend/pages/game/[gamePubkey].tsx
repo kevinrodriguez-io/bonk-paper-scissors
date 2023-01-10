@@ -100,6 +100,8 @@ const ClaimCard = ({ game, gamePubkey }: ClaimCardProps) => {
 
   const isGameClaimed = !!game.winner;
 
+  const gameIsDraw = !!game.gameState.draw;
+
   return (
     <>
       {!isGameClaimed ? (
@@ -127,15 +129,20 @@ const ClaimCard = ({ game, gamePubkey }: ClaimCardProps) => {
               </p>
             </div>
             <div className="mt-5 space-y-6 md:col-span-1 md:mt-0">
-              {isWinnerButGameHasntClaimed ? (
+              {!gameIsDraw && isWinnerButGameHasntClaimed ? (
                 <div className="mt-5 space-y-6 md:col-span-1 md:mt-0 text-green-800 text-justify">
                   Looks like you won this game! Claim your prize by clicking the
                   claim button.
                 </div>
               ) : null}
-              {isLoserButGameHasntBeenClaimed ? (
+              {!gameIsDraw && isLoserButGameHasntBeenClaimed ? (
                 <div className="mt-5 space-y-6 md:col-span-1 md:mt-0 text-gray-800 text-justify">
                   Sorry, but it looks like you lost this game!
+                </div>
+              ) : null}
+              {gameIsDraw ? (
+                <div className="mt-5 space-y-6 md:col-span-1 md:mt-0 text-gray-800 text-justify">
+                  This game is a draw, so no one wins or loses.
                 </div>
               ) : null}
             </div>
@@ -449,6 +456,7 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
   const { publicKey } = useWallet();
   const [salt, setSalt] = useState<SaltResult | null>(null);
   const [choice, setChoice] = useState<Choice | null>(null);
+  const [revealCardKey, setRevealCardKey] = useState(0);
   const [fireSecondPlayerMove, setFireSecondPlayerMove] = useState(0);
   const adminCloseStaleGame = useAdminCloseStaleGame({
     onSuccess: (txId) => {
@@ -555,7 +563,7 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
           </div>
         );
       });
-      secondPlayerMove.secondPlayerMove({
+      await secondPlayerMove.secondPlayerMove({
         dependencies: { wallet, connection },
         payload: {
           choice,
@@ -563,6 +571,7 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
           gamePubKey: new web3.PublicKey(gamePubkey),
         },
       });
+      setRevealCardKey((v) => v + 1);
     })();
   }, [fireSecondPlayerMove]);
 
@@ -581,6 +590,32 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
     resetAll();
   };
 
+  const gameIsJoinable =
+    publicKey && !isGameFirstPlayer && data?.gameState.createdAndWaitingForStart;
+
+  const stuffIsLoading = secondPlayerMove.isMutating || isLoading;
+
+  const isAdminClosable =
+    isAdminWallet && data?.gameState.startedAndWaitingForReveal;
+
+  const isCancellable =
+    isGameFirstPlayer && data?.gameState.createdAndWaitingForStart;
+
+  const isRevealable =
+    data?.gameState.startedAndWaitingForReveal &&
+    data?.firstPlayerHash &&
+    data?.secondPlayerHash &&
+    // !data.firstPlayerChoice &&
+    // !data.secondPlayerChoice &&
+    (isGameFirstPlayer || isGameSecondPlayer);
+
+  const isClaimable =
+    data?.firstPlayerChoice &&
+    data?.secondPlayerChoice &&
+    !data?.gameState.draw &&
+    !data?.gameState.firstPlayerWon &&
+    !data?.gameState.secondPlayerWon;
+
   if (isLoading) {
     return <LoadingCard message="Loading game" />;
   }
@@ -589,32 +624,6 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
     console.log({ error });
     return <NotFoundCard />;
   }
-
-  const gameIsJoinable =
-    publicKey && !isGameFirstPlayer && data.gameState.createdAndWaitingForStart;
-
-  const stuffIsLoading = secondPlayerMove.isMutating || isLoading;
-
-  const isAdminClosable =
-    isAdminWallet && data.gameState.startedAndWaitingForReveal;
-
-  const isCancellable =
-    isGameFirstPlayer && data.gameState.createdAndWaitingForStart;
-
-  const isRevealable =
-    data.gameState.startedAndWaitingForReveal &&
-    data.firstPlayerHash &&
-    data.secondPlayerHash &&
-    // !data.firstPlayerChoice &&
-    // !data.secondPlayerChoice &&
-    (isGameFirstPlayer || isGameSecondPlayer);
-
-  const isClaimable =
-    data.firstPlayerChoice &&
-    data.secondPlayerChoice &&
-    !data.gameState.draw &&
-    !data.gameState.firstPlayerWon &&
-    !data.gameState.secondPlayerWon;
 
   return (
     <>
@@ -695,7 +704,7 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
           </button>
         </div>
       ) : null}
-      {isRevealable ? <RevealCard game={data} gamePubkey={gamePubkey} /> : null}
+      {isRevealable ? <RevealCard key={revealCardKey} game={data} gamePubkey={gamePubkey} /> : null}
       {isClaimable ? <ClaimCard game={data} gamePubkey={gamePubkey} /> : null}
     </>
   );
