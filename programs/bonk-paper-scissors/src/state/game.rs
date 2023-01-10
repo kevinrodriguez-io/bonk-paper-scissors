@@ -51,31 +51,31 @@ impl Game {
     pub fn size() -> usize {
         8 + // Discriminator
         1 + // bump
-        4 + 32 + // game_id
+        (4 + 32) + // game_id
         32 + // mint
         8 + // amount_to_match
 
         32 + // first_player
         32 + // first_player_hash
         32 + // first_player_escrow_address
-        1 + 1 + // first_player_choice
-        1 + 8 + // first_player_revealed_at
+        (1 + 1 + 1) + // first_player_choice
+        (1 + 8) + // first_player_revealed_at
 
-        1 + 32 + // second_player
-        1 + 32 + // second_player_hash
-        1 + 32 + // second_player_escrow_address
-        1 + 1 + // second_player_choice
-        1 + 8 + // second_player_revealed_at
+        (1 + 32) + // second_player
+        (1 + 32) + // second_player_hash
+        (1 + 32) + // second_player_escrow_address
+        (1 + 1 + 1) + // second_player_choice
+        (1 + 8)+ // second_player_revealed_at
 
-        1 + 32 + // winner
-        1 + 32 + // loser
-        1 + 8 + // amount_won
-        1 + 8 + // amount_burned
-        1 + 8 + // drawn_at
+        (1 + 32) + // winner
+        (1 + 32) + // loser
+        (1 + 8) + // amount_won
+        (1 + 8) + // amount_burned
+        (1 + 8) + // drawn_at
 
-        1 + // game_state
+        (1 + 1) + // game_state
         8 + // created_at
-        256 // padding
+        253 // padding
     }
 
     pub fn new(
@@ -181,5 +181,4 @@ impl Game {
         self.amount_burned = Some(amount_burned);
         self.drawn_at = Some(drawn_at);
     }
-
 }

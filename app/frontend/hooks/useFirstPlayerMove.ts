@@ -56,7 +56,6 @@ const firstPlayerMove = async (
 
   const [playerEscrowPDA] = getEscrowPDA("first", gamePDA, program.programId);
 
-  console.log({ hash });
   const tx = await program.methods
     .firstPlayerMove(gameId, amount, [...hash.hash])
     .accountsStrict({

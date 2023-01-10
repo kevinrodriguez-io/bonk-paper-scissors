@@ -10,6 +10,9 @@ export const hideMiddle = (str: string) => {
 export const capitalize = (str: string) =>
   str.charAt(0).toUpperCase() + str.slice(1);
 
+export const decapitalize = (str: string) =>
+  str.charAt(0).toLowerCase() + str.slice(1);
+
 export const splitLowerCaseItemIntoWords = (lowerCaseItem: string) =>
   lowerCaseItem
     .split(/(?=[A-Z])/)

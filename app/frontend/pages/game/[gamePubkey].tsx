@@ -605,8 +605,8 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
     data.gameState.startedAndWaitingForReveal &&
     data.firstPlayerHash &&
     data.secondPlayerHash &&
-    !data.firstPlayerChoice &&
-    !data.secondPlayerChoice &&
+    // !data.firstPlayerChoice &&
+    // !data.secondPlayerChoice &&
     (isGameFirstPlayer || isGameSecondPlayer);
 
   const isClaimable =

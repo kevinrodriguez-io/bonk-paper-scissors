@@ -54,7 +54,7 @@ export const Layout = ({ children, title, className }: LayoutProps) => {
         <Transition.Root show={sidebarOpen} as={Fragment}>
           <Dialog
             as="div"
-            className="relative z-40 md:hidden"
+            className="relative z-40 2xl:hidden"
             onClose={setSidebarOpen}
           >
             <Transition.Child
@@ -138,7 +138,7 @@ export const Layout = ({ children, title, className }: LayoutProps) => {
         </Transition.Root>
 
         {/* Static sidebar for desktop */}
-        <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
+        <div className="hidden 2xl:fixed 2xl:inset-y-0 2xl:flex 2xl:w-64 2xl:flex-col">
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className="flex flex-grow flex-col overflow-y-auto bg-primary-700 pt-5">
             <div className="flex flex-shrink-0 items-center px-4">
@@ -172,11 +172,11 @@ export const Layout = ({ children, title, className }: LayoutProps) => {
             </div>
           </div>
         </div>
-        <div className="flex flex-1 flex-col md:pl-64">
+        <div className="flex flex-1 flex-col 2xl:pl-64">
           <div className="sticky top-0 z-10 flex h-16 flex-shrink-0 bg-white shadow">
             <button
               type="button"
-              className="border-r border-gray-200 px-4 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 md:hidden"
+              className="border-r border-gray-200 px-4 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 2xl:hidden"
               onClick={() => setSidebarOpen(true)}
             >
               <span className="sr-only">Open sidebar</span>
@@ -184,7 +184,7 @@ export const Layout = ({ children, title, className }: LayoutProps) => {
             </button>
             {/* <div className="flex flex-1 justify-between px-4">
               <div className="flex flex-1">
-                <form className="flex w-full md:ml-0" action="#" method="GET">
+                <form className="flex w-full 2xl:ml-0" action="#" method="GET">
                   <label htmlFor="search-field" className="sr-only">
                     Search
                   </label>
@@ -205,7 +205,7 @@ export const Layout = ({ children, title, className }: LayoutProps) => {
                   </div>
                 </form>
               </div>
-              <div className="ml-4 flex items-center md:ml-6">
+              <div className="ml-4 flex items-center 2xl:ml-6">
                 <button
                   type="button"
                   className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
@@ -223,12 +223,12 @@ export const Layout = ({ children, title, className }: LayoutProps) => {
 
           <main>
             <div className="py-6">
-              <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+              <div className="mx-auto max-w-7xl px-4 sm:px-6 2xl:px-8">
                 <h1 className="text-2xl font-semibold text-gray-900">
                   {title}
                 </h1>
               </div>
-              <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+              <div className="mx-auto max-w-7xl px-4 sm:px-6 2xl:px-8">
                 {children}
               </div>
             </div>

@@ -14,9 +14,13 @@ export type HashResult = ReturnType<typeof getHash>;
 
 export const getHash = async (salt: SaltResult, choice: Choice) => {
   const choiceNumber = choiceToNumber(choice);
+  const totalBytes = [choiceNumber, ...salt.randomBytes];
+  if (totalBytes.length !== 33) {
+    throw new Error("Invalid total bytes length");
+  }
   const bytes = await window.crypto.subtle.digest(
     "SHA-256",
-    new Uint8Array([choiceNumber, ...salt.randomBytes])
+    new Uint8Array(totalBytes)
   );
   const hash = new Uint8Array(bytes);
   const bytesBs58 = encode(hash);
