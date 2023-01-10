@@ -42,7 +42,7 @@ const BPSApp = ({ Component, pageProps }: AppProps) => {
       <ConnectionProvider endpoint={endpoint}>
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>
-            <Component {...pageProps} />;
+            <Component {...pageProps} />
           </WalletModalProvider>
         </WalletProvider>
       </ConnectionProvider>

@@ -12,6 +12,15 @@ export const getSalt = () => {
 
 export type HashResult = ReturnType<typeof getHash>;
 
+export const getGameSecret = (salt: SaltResult, choice: Choice) => {
+  const choiceNumber = choiceToNumber(choice);
+  const totalBytes = [choiceNumber, ...salt.randomBytes];
+  if (totalBytes.length !== 33) {
+    throw new Error("Invalid total bytes length");
+  }
+  return encode(totalBytes);
+};
+
 export const getHash = async (salt: SaltResult, choice: Choice) => {
   const choiceNumber = choiceToNumber(choice);
   const totalBytes = [choiceNumber, ...salt.randomBytes];

@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{transfer, TokenAccount, Token, Transfer};
+use anchor_spl::token::{transfer, Token, TokenAccount, Transfer};
 
 use crate::{
     constants::{ESCROW, FIRST_PLAYER, GAME},

@@ -7,7 +7,8 @@ use solana_program::pubkey;
 
 use crate::{
     constants::GAME,
-    state::{Game, GameState}, error::BPSError,
+    error::BPSError,
+    state::{Game, GameState},
 };
 
 #[derive(Accounts)]
@@ -84,9 +85,18 @@ pub fn admin_unwind_stale_game(ctx: Context<AdminUnwindStaleGame>) -> Result<()>
     let first_player_token_account = &mut ctx.accounts.first_player_token_account;
     let second_player_escrow = &mut ctx.accounts.second_player_escrow;
     let second_player_token_account = &mut ctx.accounts.second_player_token_account;
-    require!(game.game_state == GameState::StartedAndWaitingForReveal, BPSError::InvalidGameState);
-    require!(game.first_player_revealed_at.is_none(), BPSError::InvalidGameState);
-    require!(game.second_player_revealed_at.is_none(), BPSError::InvalidGameState);
+    require!(
+        game.game_state == GameState::StartedAndWaitingForReveal,
+        BPSError::InvalidGameState
+    );
+    // require!(
+    //     game.first_player_revealed_at.is_none(),
+    //     BPSError::InvalidGameState
+    // );
+    // require!(
+    //     game.second_player_revealed_at.is_none(),
+    //     BPSError::InvalidGameState
+    // );
 
     let game_seeds = &[
         b"game",

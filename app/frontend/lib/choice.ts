@@ -7,6 +7,6 @@ export const choiceToNumber = (choice: Choice): number => {
     case "paper":
       return 2;
     case "scissors":
-      return 2;
+      return 3;
   }
 };

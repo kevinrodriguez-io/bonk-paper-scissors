@@ -7,7 +7,8 @@ use anchor_spl::{
 
 use crate::{
     constants::{ESCROW, FIRST_PLAYER, GAME},
-    state::Game, error::BPSError,
+    error::BPSError,
+    state::Game,
 };
 
 #[derive(Accounts)]

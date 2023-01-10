@@ -41,9 +41,9 @@ const adminCloseStaleGame = async (
   if (!game.gameState.startedAndWaitingForReveal) {
     throw new Error("Game not started");
   }
-  if (game.firstPlayerRevealedAt || game.secondPlayerRevealedAt) {
-    throw new Error("Game already revealed");
-  }
+  // if (game.firstPlayerRevealedAt || game.secondPlayerRevealedAt) {
+  //   throw new Error("Game already revealed");
+  // }
 
   const mint = game.mint;
   const firstPlayerATA = await findTokenAccountPKForMintByOwner(
