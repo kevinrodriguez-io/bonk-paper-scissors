@@ -8,7 +8,7 @@ import {
 import { NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { z } from "zod";
@@ -27,7 +27,7 @@ import { useGameChangesListener } from "../../hooks/useGameSubscription";
 import { useIsAdminWallet } from "../../hooks/useIsAdminWallet";
 import { useWalletMatchesPubkey } from "../../hooks/useWalletMatchesPubkey";
 import { useSecondPlayerMove } from "../../hooks/useSecondPlayerMove";
-import { getSalt, SaltResult } from "../../lib/crypto/crypto";
+import { getGameSecret, getSalt, SaltResult } from "../../lib/crypto/crypto";
 import { getValueFromEnumVariant } from "../../lib/solana/getValueFromEnumVariant";
 import { getChoiceKey, getSaltKey } from "../../lib/storage";
 import { capitalize, splitLowerCaseItemIntoWords } from "../../lib/string";
@@ -43,6 +43,7 @@ import {
 } from "../../hooks/useIsGameWinner";
 import { useClaimGame } from "../../hooks/useClaimGame";
 import { SuccessModal } from "../../components/SuccessModal";
+import { EnvelopeIcon, ShieldCheckIcon } from "@heroicons/react/20/solid";
 
 type ClaimCardProps = {
   game: GameAccount;
@@ -309,9 +310,21 @@ const JoinCard = ({ onSuccess, onCancel, isLoading }: JoinCardProps) => {
   const [salt, setSalt] = useState<SaltResult | null>(null);
   const {
     register,
+    watch,
     handleSubmit,
     formState: { errors },
   } = useForm({ resolver: zodResolver(joinSchema) });
+  const choice = watch("choice") as Choice | undefined | null;
+  const secret = useMemo(() => {
+    if (!salt || !choice) return null;
+    const secret = getGameSecret(salt, choice);
+    const link = `mailto:?subject=My%20game%20secret&body=I'm%20mailing%20myself%20my%20game%20secret%20just%20in%20case%20I%20change%20browser%20or%20have%20to%20resume%20my%20game%20from%20another%20device.%0D%0ASecret%3A%20${secret}`;
+    return { secret, link };
+  }, [choice, salt]);
+  console.log({
+    secret,
+    choice,
+  })
   useEffect(() => {
     const { bytesBs58, randomBytes } = getSalt();
     setSalt({ bytesBs58, randomBytes });
@@ -362,6 +375,45 @@ const JoinCard = ({ onSuccess, onCancel, isLoading }: JoinCardProps) => {
               <legend className="contents text-sm font-medium text-gray-700">
                 Your secret choice
               </legend>
+              {choice && salt ? (
+                <div>
+                  <label
+                    htmlFor="gameSecret"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Game secret (DO NOT SHARE)
+                  </label>
+                  <div className="relative rounded-md shadow-sm">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <ShieldCheckIcon
+                        className="h-5 w-5 text-green-400"
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      id="gameSecret"
+                      name="gameSecret"
+                      className="block w-full rounded-md border-gray-300 pl-10 focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                      placeholder="Game secret"
+                      value={secret?.secret ?? ""}
+                      readOnly
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center">
+                      <a
+                        className="h-full inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 cursor-pointer"
+                        href={secret?.link ?? "#"}
+                      >
+                        <EnvelopeIcon
+                          className="h-5 w-5 mr-1 text-gray-400"
+                          aria-hidden="true"
+                        />
+                        Mail myself
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
               <div className="mt-4 space-y-4 flex">
                 <div className="flex items-center relative">
                   <input
@@ -591,7 +643,9 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
   };
 
   const gameIsJoinable =
-    publicKey && !isGameFirstPlayer && data?.gameState.createdAndWaitingForStart;
+    publicKey &&
+    !isGameFirstPlayer &&
+    data?.gameState.createdAndWaitingForStart;
 
   const stuffIsLoading = secondPlayerMove.isMutating || isLoading;
 
@@ -704,7 +758,9 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
           </button>
         </div>
       ) : null}
-      {isRevealable ? <RevealCard key={revealCardKey} game={data} gamePubkey={gamePubkey} /> : null}
+      {isRevealable ? (
+        <RevealCard key={revealCardKey} game={data} gamePubkey={gamePubkey} />
+      ) : null}
       {isClaimable ? <ClaimCard game={data} gamePubkey={gamePubkey} /> : null}
     </>
   );
