@@ -12,6 +12,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { z } from "zod";
+import bs58 from "bs58";
 
 import type { ChoiceLocalStorageResult } from "../../types/ChoiceLocalStorageResult";
 import { ConnectWalletCard } from "../../components/ConnectWalletCard";
@@ -44,6 +45,7 @@ import {
 import { useClaimGame } from "../../hooks/useClaimGame";
 import { SuccessModal } from "../../components/SuccessModal";
 import { EnvelopeIcon, ShieldCheckIcon } from "@heroicons/react/20/solid";
+import { numberToChoice } from "../../lib/choice";
 
 type ClaimCardProps = {
   game: GameAccount;
@@ -174,6 +176,7 @@ const RevealCard = ({
 }) => {
   const wallet = useAnchorWallet();
   const { connection } = useConnection();
+  const [gameSecret, setGameSecret] = useState("");
   const isFirstPlayer = useWalletMatchesPubkey(game.firstPlayer.toBase58());
   const isSecondPlayer = useWalletMatchesPubkey(game.secondPlayer?.toBase58()!);
   const choice = useReadLocalStorage<ChoiceLocalStorageResult>(
@@ -182,6 +185,7 @@ const RevealCard = ({
   const salt = useReadLocalStorage<SaltResult>(
     getSaltKey(gamePubkey, wallet?.publicKey?.toBase58()!)
   );
+  const hasChoiceAndSaltFromLocalStorage = !!choice && !!salt;
   const reveal = useReveal({
     onSuccess: (txId) => {
       toast.success(() => {
@@ -207,17 +211,47 @@ const RevealCard = ({
   });
 
   const handleReveal = () => {
-    reveal.reveal({
-      dependencies: {
-        connection,
-        wallet: wallet!,
-      },
-      payload: {
-        gamePubKey: new web3.PublicKey(gamePubkey),
-        choice: choice!.choice,
-        salt: [...salt!.randomBytes],
-      },
-    });
+    if (!hasChoiceAndSaltFromLocalStorage && gameSecret.length < 16) {
+      toast.error("Please enter a game your game secret.");
+      return;
+    } else if (!hasChoiceAndSaltFromLocalStorage && gameSecret.length >= 16) {
+      const bytes = [...bs58.decode(gameSecret)];
+      const [choiceByte, ...saltBytes] = bytes;
+
+      if (choiceByte <= 0 || choiceByte >= 4) {
+        toast.error("Invalid game secret.");
+        return;
+      }
+      if (saltBytes.length !== 32) {
+        toast.error("Invalid game secret.");
+        return;
+      }
+
+      const choice = numberToChoice(choiceByte);
+      reveal.reveal({
+        dependencies: {
+          connection,
+          wallet: wallet!,
+        },
+        payload: {
+          gamePubKey: new web3.PublicKey(gamePubkey),
+          choice: choice,
+          salt: saltBytes,
+        },
+      });
+    } else {
+      reveal.reveal({
+        dependencies: {
+          connection,
+          wallet: wallet!,
+        },
+        payload: {
+          gamePubKey: new web3.PublicKey(gamePubkey),
+          choice: choice!.choice,
+          salt: [...salt!.randomBytes],
+        },
+      });
+    }
   };
 
   const didPlayerAlreadyReveal =
@@ -245,14 +279,45 @@ const RevealCard = ({
           </div>
           <div className="mt-5 space-y-6 md:col-span-1 md:mt-0">
             {!didPlayerAlreadyReveal ? (
-              <button
-                type="button"
-                onClick={handleReveal}
-                className="items-center inline-flex justify-center rounded-md border border-transparent bg-primary-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-              >
-                <img src="/doggo.png" className="h-6 w-6 mr-2" />
-                Reveal
-              </button>
+              <>
+                <p className="text-xs mb-2 text-gray-500 text-justify">
+                  {hasChoiceAndSaltFromLocalStorage
+                    ? "Your browser remembers your game secret, this is used to reveal your choice. Remember, if you switch your device or clear the browser history you might have to input your game secret manually before revealing your choice."
+                    : "Oops, looks like this browser doesn't have your choice/salt stored. You can still reveal your choice by entering it manually."}
+                </p>
+                {!hasChoiceAndSaltFromLocalStorage ? (
+                  <div>
+                    <div className="relative rounded-md shadow-sm">
+                      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <ShieldCheckIcon
+                          className="h-5 w-5 text-green-400"
+                          aria-hidden="true"
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        id="gameSecret"
+                        name="gameSecret"
+                        value={gameSecret}
+                        onChange={(e) => setGameSecret(e.target.value)}
+                        className="block w-full rounded-md border-gray-300 pl-10 focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        placeholder="Game secret"
+                      />
+                    </div>
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={handleReveal}
+                  className="items-center disabled:bg-slate-400 disabled:cursor-not-allowed inline-flex justify-center rounded-md border border-transparent bg-primary-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                  disabled={
+                    !hasChoiceAndSaltFromLocalStorage && gameSecret.length < 16
+                  }
+                >
+                  <img src="/doggo.png" className="h-6 w-6 mr-2" />
+                  Reveal
+                </button>
+              </>
             ) : (
               <div className="flex items-center justify-center space-x-2">
                 <div className="text-sm text-green-500">
@@ -321,10 +386,6 @@ const JoinCard = ({ onSuccess, onCancel, isLoading }: JoinCardProps) => {
     const link = `mailto:?subject=My%20game%20secret&body=I'm%20mailing%20myself%20my%20game%20secret%20just%20in%20case%20I%20change%20browser%20or%20have%20to%20resume%20my%20game%20from%20another%20device.%0D%0ASecret%3A%20${secret}`;
     return { secret, link };
   }, [choice, salt]);
-  console.log({
-    secret,
-    choice,
-  })
   useEffect(() => {
     const { bytesBs58, randomBytes } = getSalt();
     setSalt({ bytesBs58, randomBytes });
@@ -371,49 +432,10 @@ const JoinCard = ({ onSuccess, onCancel, isLoading }: JoinCardProps) => {
           </div>
 
           <div className="mt-5 space-y-6 md:col-span-2 md:mt-0">
+            <legend className="contents text-sm font-medium text-gray-700">
+              Your secret choice
+            </legend>
             <fieldset>
-              <legend className="contents text-sm font-medium text-gray-700">
-                Your secret choice
-              </legend>
-              {choice && salt ? (
-                <div>
-                  <label
-                    htmlFor="gameSecret"
-                    className="text-sm font-medium text-gray-700"
-                  >
-                    Game secret (DO NOT SHARE)
-                  </label>
-                  <div className="relative rounded-md shadow-sm">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                      <ShieldCheckIcon
-                        className="h-5 w-5 text-green-400"
-                        aria-hidden="true"
-                      />
-                    </div>
-                    <input
-                      type="text"
-                      id="gameSecret"
-                      name="gameSecret"
-                      className="block w-full rounded-md border-gray-300 pl-10 focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                      placeholder="Game secret"
-                      value={secret?.secret ?? ""}
-                      readOnly
-                    />
-                    <div className="absolute inset-y-0 right-0 flex items-center">
-                      <a
-                        className="h-full inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 cursor-pointer"
-                        href={secret?.link ?? "#"}
-                      >
-                        <EnvelopeIcon
-                          className="h-5 w-5 mr-1 text-gray-400"
-                          aria-hidden="true"
-                        />
-                        Mail myself
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              ) : null}
               <div className="mt-4 space-y-4 flex">
                 <div className="flex items-center relative">
                   <input
@@ -470,6 +492,46 @@ const JoinCard = ({ onSuccess, onCancel, isLoading }: JoinCardProps) => {
                 {errors.choice?.message as string}
               </div>
             )}
+
+            {choice && salt ? (
+              <div>
+                <label
+                  htmlFor="gameSecret"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Game secret (DO NOT SHARE)
+                </label>
+                <div className="relative rounded-md shadow-sm">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <ShieldCheckIcon
+                      className="h-5 w-5 text-green-400"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    id="gameSecret"
+                    name="gameSecret"
+                    className="block w-full rounded-md border-gray-300 pl-10 focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                    placeholder="Game secret"
+                    value={secret?.secret ?? ""}
+                    readOnly
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center">
+                    <a
+                      className="h-full inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 cursor-pointer"
+                      href={secret?.link ?? "#"}
+                    >
+                      <EnvelopeIcon
+                        className="h-5 w-5 mr-1 text-gray-400"
+                        aria-hidden="true"
+                      />
+                      Mail myself
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

@@ -10,3 +10,16 @@ export const choiceToNumber = (choice: Choice): number => {
       return 3;
   }
 };
+
+export const numberToChoice = (number: number): Choice => {
+  switch (number) {
+    case 1:
+      return "bonk";
+    case 2:
+      return "paper";
+    case 3:
+      return "scissors";
+    default:
+      throw new Error("Invalid choice bit");
+  }
+};
