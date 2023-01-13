@@ -65,14 +65,16 @@ pub mod bonk_paper_scissors {
     pub fn init_bps_settings(
         ctx: Context<InitBpsSettings>,
         time_for_penalization: i64,
+        game_fee_lamports: u64,
     ) -> Result<()> {
-        instructions::init_bps_settings(ctx, time_for_penalization)
+        instructions::init_bps_settings(ctx, time_for_penalization, game_fee_lamports)
     }
 
     pub fn update_bps_settings(
         ctx: Context<UpdateBpsSettings>,
         time_for_penalization: i64,
+        player_fee_lamports: u64,
     ) -> Result<()> {
-        instructions::update_bps_settings(ctx, time_for_penalization)
+        instructions::update_bps_settings(ctx, time_for_penalization, player_fee_lamports)
     }
 }

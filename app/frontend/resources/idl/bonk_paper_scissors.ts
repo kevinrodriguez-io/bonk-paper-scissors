@@ -29,6 +29,16 @@ export type BonkPaperScissors = {
           "isSigner": false
         },
         {
+          "name": "bpsSettings",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bpsTreasury",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "firstPlayer",
           "isMut": true,
           "isSigner": true
@@ -138,6 +148,16 @@ export type BonkPaperScissors = {
           "name": "secondPlayer",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "bpsSettings",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bpsTreasury",
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "associatedTokenProgram",
@@ -393,6 +413,10 @@ export type BonkPaperScissors = {
         {
           "name": "timeForPenalization",
           "type": "i64"
+        },
+        {
+          "name": "gameFeeLamports",
+          "type": "u64"
         }
       ]
     },
@@ -419,6 +443,10 @@ export type BonkPaperScissors = {
         {
           "name": "timeForPenalization",
           "type": "i64"
+        },
+        {
+          "name": "playerFeeLamports",
+          "type": "u64"
         }
       ]
     }
@@ -436,6 +464,14 @@ export type BonkPaperScissors = {
           {
             "name": "timeForPenalization",
             "type": "i64"
+          },
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "playerFeeLamports",
+            "type": "u64"
           }
         ]
       }
@@ -680,6 +716,16 @@ export const IDL: BonkPaperScissors = {
           "isSigner": false
         },
         {
+          "name": "bpsSettings",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bpsTreasury",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "firstPlayer",
           "isMut": true,
           "isSigner": true
@@ -789,6 +835,16 @@ export const IDL: BonkPaperScissors = {
           "name": "secondPlayer",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "bpsSettings",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bpsTreasury",
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "associatedTokenProgram",
@@ -1044,6 +1100,10 @@ export const IDL: BonkPaperScissors = {
         {
           "name": "timeForPenalization",
           "type": "i64"
+        },
+        {
+          "name": "gameFeeLamports",
+          "type": "u64"
         }
       ]
     },
@@ -1070,6 +1130,10 @@ export const IDL: BonkPaperScissors = {
         {
           "name": "timeForPenalization",
           "type": "i64"
+        },
+        {
+          "name": "playerFeeLamports",
+          "type": "u64"
         }
       ]
     }
@@ -1087,6 +1151,14 @@ export const IDL: BonkPaperScissors = {
           {
             "name": "timeForPenalization",
             "type": "i64"
+          },
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "playerFeeLamports",
+            "type": "u64"
           }
         ]
       }

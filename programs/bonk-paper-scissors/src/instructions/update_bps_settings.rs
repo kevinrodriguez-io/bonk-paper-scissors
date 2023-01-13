@@ -8,7 +8,10 @@ pub struct UpdateBpsSettings<'info> {
     #[account(
         mut,
         seeds = [BPS_SETTINGS.as_ref()],
-        bump = bps_settings.bump
+        bump = bps_settings.bump,
+        realloc = BpsSettings::size_v2(),
+        realloc::payer = signer,
+        realloc::zero = false,
     )]
     pub bps_settings: Account<'info, BpsSettings>,
     #[account(
@@ -22,8 +25,12 @@ pub struct UpdateBpsSettings<'info> {
 pub fn update_bps_settings(
     ctx: Context<UpdateBpsSettings>,
     time_for_penalization: i64,
+    player_fee_lamports: u64,
 ) -> Result<()> {
     let bps_settings = &mut ctx.accounts.bps_settings;
+    let signer = &ctx.accounts.signer;
     bps_settings.time_for_penalization = time_for_penalization;
+    bps_settings.authority = signer.key();
+    bps_settings.player_fee_lamports = player_fee_lamports;
     Ok(())
 }

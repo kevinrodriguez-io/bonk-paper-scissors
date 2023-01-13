@@ -34,7 +34,10 @@ const getBPSSettingsPDA = () =>
 
   const [bpsSettingsPDA] = getBPSSettingsPDA();
   const txId = await program.methods
-    .updateBpsSettings(new anchor.BN(1 * 24 * 60 * 60 * 1000))
+    .updateBpsSettings(
+      new anchor.BN(7 * 24 * 60 * 60 * 1000), // 7 Days
+      new anchor.BN(0.025 * anchor.web3.LAMPORTS_PER_SOL) // 0.025 SOL
+    )
     .accountsStrict({
       bpsSettings: bpsSettingsPDA,
       signer: program.provider.publicKey,

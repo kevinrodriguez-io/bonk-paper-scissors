@@ -1,4 +1,7 @@
-use anchor_lang::prelude::*;
+use anchor_lang::{
+    prelude::*,
+    solana_program::{program::invoke, system_instruction},
+};
 use anchor_spl::{
     associated_token::AssociatedToken,
     token::{transfer, Mint, Token, TokenAccount, Transfer},
@@ -6,9 +9,9 @@ use anchor_spl::{
 // use solana_program::pubkey;
 
 use crate::{
-    constants::{ESCROW, FIRST_PLAYER, GAME},
+    constants::{BPS_SETTINGS, ESCROW, FIRST_PLAYER, GAME},
     error::BPSError,
-    state::Game,
+    state::{BpsSettings, Game},
 };
 
 #[derive(Accounts)]
@@ -51,7 +54,19 @@ pub struct FirstPlayerMove<'info> {
         // Constraint for Bonk ;)
         // address = pubkey!("DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263")
     )]
-    pub mint: Account<'info, Mint>,
+    pub mint: Box<Account<'info, Mint>>,
+
+    #[account(
+        seeds = [BPS_SETTINGS.as_ref()],
+        bump = bps_settings.bump,
+    )]
+    pub bps_settings: Box<Account<'info, BpsSettings>>,
+    /// CHECK: Address check is enough.
+    #[account(
+        mut,
+        address = bps_settings.authority
+    )]
+    pub bps_treasury: AccountInfo<'info>,
 
     #[account(mut)]
     pub first_player: Signer<'info>,
@@ -69,13 +84,16 @@ pub fn first_player_move(
 ) -> Result<()> {
     let clock = Clock::get()?;
     let game = &mut ctx.accounts.game;
+    let first_player = &ctx.accounts.first_player;
     let first_player_token_account = &mut ctx.accounts.first_player_token_account;
     let first_player_escrow = &mut ctx.accounts.first_player_escrow;
+    let bps_settings = &ctx.accounts.bps_settings;
+    let bps_treasury = &ctx.accounts.bps_treasury;
     let _hash = anchor_lang::solana_program::hash::Hash::new_from_array(first_player_hash);
     let bump = ctx.bumps.get("game").unwrap();
 
     let mint = ctx.accounts.mint.key();
-    let first_player = ctx.accounts.first_player.key();
+    let first_player_key = first_player.key();
 
     // Transfer the tokens to the escrow account.
     transfer(
@@ -84,10 +102,23 @@ pub fn first_player_move(
             Transfer {
                 from: first_player_token_account.to_account_info(),
                 to: first_player_escrow.to_account_info(),
-                authority: ctx.accounts.first_player.to_account_info(),
+                authority: first_player.to_account_info(),
             },
         ),
         amount,
+    )?;
+    // Pay the fee to the treasury.
+    invoke(
+        &system_instruction::transfer(
+            &first_player_key,
+            &bps_settings.authority,
+            bps_settings.player_fee_lamports,
+        ),
+        &[
+            first_player.to_account_info(),
+            bps_treasury.to_account_info(),
+            ctx.accounts.system_program.to_account_info(),
+        ],
     )?;
 
     game.set_inner(Game::new(
@@ -96,7 +127,7 @@ pub fn first_player_move(
         mint,
         amount,
         clock.unix_timestamp,
-        first_player,
+        first_player_key,
         first_player_hash,
         first_player_escrow.key(),
     ));

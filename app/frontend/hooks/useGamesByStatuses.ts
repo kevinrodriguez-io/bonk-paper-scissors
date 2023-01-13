@@ -3,8 +3,6 @@ import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { encode } from "bs58";
 import useSWR from "swr";
 import {
-  GAME_ACCOUNT_OFFSET_FOR_GAME_STATE,
-  GAME_ACCOUNT_SIZE,
   getBPSProgramId,
 } from "../constants/constants";
 import { decapitalize } from "../lib/string";

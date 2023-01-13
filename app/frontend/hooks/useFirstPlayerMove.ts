@@ -5,11 +5,11 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { IDL } from "../resources/idl/bonk_paper_scissors";
-import { getBPSProgramId, getMintPubKey } from "../constants/constants";
+import { getBPSProgramId, getBPSTreasuryPubKey, getMintPubKey } from "../constants/constants";
 import { findTokenAccountPKForMintByOwner } from "../lib/solana/findTokenAccountForMint";
 import { getHash, SaltResult } from "../lib/crypto/crypto";
 import { Choice } from "../types/Choice";
-import { getEscrowPDA, getGamePDA } from "../lib/solana/pdaHelpers";
+import { getBPSSettingsPDA, getEscrowPDA, getGamePDA } from "../lib/solana/pdaHelpers";
 import type { AnchorHookDependencies } from "../types/AnchorHookDependencies";
 
 type FirstPlayerMovePayload = {
@@ -55,6 +55,8 @@ const firstPlayerMove = async (
   );
 
   const [playerEscrowPDA] = getEscrowPDA("first", gamePDA, program.programId);
+  const [bpsSettingsPDA] = getBPSSettingsPDA(program.programId);
+  const bpsTreasury = getBPSTreasuryPubKey();
 
   const tx = await program.methods
     .firstPlayerMove(gameId, amount, [...hash.hash])
@@ -64,6 +66,8 @@ const firstPlayerMove = async (
       firstPlayerEscrow: playerEscrowPDA,
       firstPlayerTokenAccount: playerATA,
       mint: mint,
+      bpsSettings: bpsSettingsPDA,
+      bpsTreasury: bpsTreasury,
       systemProgram: web3.SystemProgram.programId,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       tokenProgram: TOKEN_PROGRAM_ID,
