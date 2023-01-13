@@ -29,7 +29,7 @@ export type BonkPaperScissors = {
           "isSigner": false
         },
         {
-          "name": "bpsSettings",
+          "name": "bpsSettingsV2",
           "isMut": false,
           "isSigner": false
         },
@@ -150,7 +150,7 @@ export type BonkPaperScissors = {
           "isSigner": true
         },
         {
-          "name": "bpsSettings",
+          "name": "bpsSettingsV2",
           "isMut": false,
           "isSigner": false
         },
@@ -239,7 +239,7 @@ export type BonkPaperScissors = {
           "isSigner": false
         },
         {
-          "name": "bpsSettings",
+          "name": "bpsSettingsV2",
           "isMut": false,
           "isSigner": false
         },
@@ -300,34 +300,6 @@ export type BonkPaperScissors = {
         }
       ],
       "args": []
-    },
-    {
-      "name": "testHashing",
-      "accounts": [],
-      "args": [
-        {
-          "name": "choice",
-          "type": "u8"
-        },
-        {
-          "name": "salt",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          }
-        },
-        {
-          "name": "hash",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          }
-        }
-      ]
     },
     {
       "name": "adminUnwindStaleGame",
@@ -391,10 +363,10 @@ export type BonkPaperScissors = {
       "args": []
     },
     {
-      "name": "initBpsSettings",
+      "name": "initBpsSettingsV2",
       "accounts": [
         {
-          "name": "bpsSettings",
+          "name": "bpsSettingsV2",
           "isMut": true,
           "isSigner": false
         },
@@ -421,10 +393,10 @@ export type BonkPaperScissors = {
       ]
     },
     {
-      "name": "updateBpsSettings",
+      "name": "updateBpsSettingsV2",
       "accounts": [
         {
-          "name": "bpsSettings",
+          "name": "bpsSettingsV2",
           "isMut": true,
           "isSigner": false
         },
@@ -449,11 +421,48 @@ export type BonkPaperScissors = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "closeBpsSettingsV1",
+      "accounts": [
+        {
+          "name": "bpsSettings",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "signer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
     {
       "name": "bpsSettings",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "timeForPenalization",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "bpsSettingsV2",
       "type": {
         "kind": "struct",
         "fields": [
@@ -681,6 +690,11 @@ export type BonkPaperScissors = {
       "code": 6005,
       "name": "AmountExceedsBalance",
       "msg": "Amount exceeds balance"
+    },
+    {
+      "code": 6006,
+      "name": "InstructionRemoved",
+      "msg": "Instruction was removed"
     }
   ]
 };
@@ -716,7 +730,7 @@ export const IDL: BonkPaperScissors = {
           "isSigner": false
         },
         {
-          "name": "bpsSettings",
+          "name": "bpsSettingsV2",
           "isMut": false,
           "isSigner": false
         },
@@ -837,7 +851,7 @@ export const IDL: BonkPaperScissors = {
           "isSigner": true
         },
         {
-          "name": "bpsSettings",
+          "name": "bpsSettingsV2",
           "isMut": false,
           "isSigner": false
         },
@@ -926,7 +940,7 @@ export const IDL: BonkPaperScissors = {
           "isSigner": false
         },
         {
-          "name": "bpsSettings",
+          "name": "bpsSettingsV2",
           "isMut": false,
           "isSigner": false
         },
@@ -987,34 +1001,6 @@ export const IDL: BonkPaperScissors = {
         }
       ],
       "args": []
-    },
-    {
-      "name": "testHashing",
-      "accounts": [],
-      "args": [
-        {
-          "name": "choice",
-          "type": "u8"
-        },
-        {
-          "name": "salt",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          }
-        },
-        {
-          "name": "hash",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          }
-        }
-      ]
     },
     {
       "name": "adminUnwindStaleGame",
@@ -1078,10 +1064,10 @@ export const IDL: BonkPaperScissors = {
       "args": []
     },
     {
-      "name": "initBpsSettings",
+      "name": "initBpsSettingsV2",
       "accounts": [
         {
-          "name": "bpsSettings",
+          "name": "bpsSettingsV2",
           "isMut": true,
           "isSigner": false
         },
@@ -1108,10 +1094,10 @@ export const IDL: BonkPaperScissors = {
       ]
     },
     {
-      "name": "updateBpsSettings",
+      "name": "updateBpsSettingsV2",
       "accounts": [
         {
-          "name": "bpsSettings",
+          "name": "bpsSettingsV2",
           "isMut": true,
           "isSigner": false
         },
@@ -1136,11 +1122,48 @@ export const IDL: BonkPaperScissors = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "closeBpsSettingsV1",
+      "accounts": [
+        {
+          "name": "bpsSettings",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "signer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
     {
       "name": "bpsSettings",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "timeForPenalization",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "bpsSettingsV2",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1368,6 +1391,11 @@ export const IDL: BonkPaperScissors = {
       "code": 6005,
       "name": "AmountExceedsBalance",
       "msg": "Amount exceeds balance"
+    },
+    {
+      "code": 6006,
+      "name": "InstructionRemoved",
+      "msg": "Instruction was removed"
     }
   ]
 };

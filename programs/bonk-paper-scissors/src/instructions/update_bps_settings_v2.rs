@@ -1,19 +1,16 @@
 use anchor_lang::prelude::*;
 use solana_program::pubkey;
 
-use crate::{constants::BPS_SETTINGS, state::BpsSettings};
+use crate::{constants::BPS_SETTINGS_V2, state::BpsSettingsV2};
 
 #[derive(Accounts)]
-pub struct UpdateBpsSettings<'info> {
+pub struct UpdateBpsSettingsV2<'info> {
     #[account(
         mut,
-        seeds = [BPS_SETTINGS.as_ref()],
-        bump = bps_settings.bump,
-        realloc = BpsSettings::size_v2(),
-        realloc::payer = signer,
-        realloc::zero = false,
+        seeds = [BPS_SETTINGS_V2.as_ref()],
+        bump = bps_settings_v2.bump,
     )]
-    pub bps_settings: Account<'info, BpsSettings>,
+    pub bps_settings_v2: Account<'info, BpsSettingsV2>,
     #[account(
         mut,
         address = pubkey!("bpstzWLPDetyjiD33HPGGE96MzkhEA7dhRFzhc8Ay5R")
@@ -22,12 +19,12 @@ pub struct UpdateBpsSettings<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn update_bps_settings(
-    ctx: Context<UpdateBpsSettings>,
+pub fn update_bps_settings_v2(
+    ctx: Context<UpdateBpsSettingsV2>,
     time_for_penalization: i64,
     player_fee_lamports: u64,
 ) -> Result<()> {
-    let bps_settings = &mut ctx.accounts.bps_settings;
+    let bps_settings = &mut ctx.accounts.bps_settings_v2;
     let signer = &ctx.accounts.signer;
     bps_settings.time_for_penalization = time_for_penalization;
     bps_settings.authority = signer.key();

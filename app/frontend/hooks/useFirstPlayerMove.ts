@@ -9,7 +9,7 @@ import { getBPSProgramId, getBPSTreasuryPubKey, getMintPubKey } from "../constan
 import { findTokenAccountPKForMintByOwner } from "../lib/solana/findTokenAccountForMint";
 import { getHash, SaltResult } from "../lib/crypto/crypto";
 import { Choice } from "../types/Choice";
-import { getBPSSettingsPDA, getEscrowPDA, getGamePDA } from "../lib/solana/pdaHelpers";
+import { getBPSSettingsPDAV2, getEscrowPDA, getGamePDA } from "../lib/solana/pdaHelpers";
 import type { AnchorHookDependencies } from "../types/AnchorHookDependencies";
 
 type FirstPlayerMovePayload = {
@@ -55,7 +55,7 @@ const firstPlayerMove = async (
   );
 
   const [playerEscrowPDA] = getEscrowPDA("first", gamePDA, program.programId);
-  const [bpsSettingsPDA] = getBPSSettingsPDA(program.programId);
+  const [bpsSettingsPDA] = getBPSSettingsPDAV2(program.programId);
   const bpsTreasury = getBPSTreasuryPubKey();
 
   const tx = await program.methods
@@ -66,7 +66,7 @@ const firstPlayerMove = async (
       firstPlayerEscrow: playerEscrowPDA,
       firstPlayerTokenAccount: playerATA,
       mint: mint,
-      bpsSettings: bpsSettingsPDA,
+      bpsSettingsV2: bpsSettingsPDA,
       bpsTreasury: bpsTreasury,
       systemProgram: web3.SystemProgram.programId,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,

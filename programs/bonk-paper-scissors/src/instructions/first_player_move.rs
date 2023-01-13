@@ -9,9 +9,9 @@ use anchor_spl::{
 // use solana_program::pubkey;
 
 use crate::{
-    constants::{BPS_SETTINGS, ESCROW, FIRST_PLAYER, GAME},
+    constants::{ESCROW, FIRST_PLAYER, GAME, BPS_SETTINGS_V2},
     error::BPSError,
-    state::{BpsSettings, Game},
+    state::{Game, BpsSettingsV2},
 };
 
 #[derive(Accounts)]
@@ -57,14 +57,14 @@ pub struct FirstPlayerMove<'info> {
     pub mint: Box<Account<'info, Mint>>,
 
     #[account(
-        seeds = [BPS_SETTINGS.as_ref()],
-        bump = bps_settings.bump,
+        seeds = [BPS_SETTINGS_V2.as_ref()],
+        bump = bps_settings_v2.bump,
     )]
-    pub bps_settings: Box<Account<'info, BpsSettings>>,
+    pub bps_settings_v2: Box<Account<'info, BpsSettingsV2>>,
     /// CHECK: Address check is enough.
     #[account(
         mut,
-        address = bps_settings.authority
+        address = bps_settings_v2.authority
     )]
     pub bps_treasury: AccountInfo<'info>,
 
@@ -87,7 +87,7 @@ pub fn first_player_move(
     let first_player = &ctx.accounts.first_player;
     let first_player_token_account = &mut ctx.accounts.first_player_token_account;
     let first_player_escrow = &mut ctx.accounts.first_player_escrow;
-    let bps_settings = &ctx.accounts.bps_settings;
+    let bps_settings_v2 = &ctx.accounts.bps_settings_v2;
     let bps_treasury = &ctx.accounts.bps_treasury;
     let _hash = anchor_lang::solana_program::hash::Hash::new_from_array(first_player_hash);
     let bump = ctx.bumps.get("game").unwrap();
@@ -111,8 +111,8 @@ pub fn first_player_move(
     invoke(
         &system_instruction::transfer(
             &first_player_key,
-            &bps_settings.authority,
-            bps_settings.player_fee_lamports,
+            &bps_settings_v2.authority,
+            bps_settings_v2.player_fee_lamports,
         ),
         &[
             first_player.to_account_info(),

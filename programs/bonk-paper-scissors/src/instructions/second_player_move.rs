@@ -8,9 +8,9 @@ use anchor_spl::{
 };
 
 use crate::{
-    constants::{BPS_SETTINGS, ESCROW, GAME, SECOND_PLAYER},
+    constants::{BPS_SETTINGS_V2, ESCROW, GAME, SECOND_PLAYER},
     error::BPSError,
-    state::{BpsSettings, Game, GameState},
+    state::{BpsSettingsV2, Game, GameState},
 };
 
 #[derive(Accounts)]
@@ -52,15 +52,15 @@ pub struct SecondPlayerMove<'info> {
     pub second_player: Signer<'info>,
 
     #[account(
-        seeds = [BPS_SETTINGS.as_ref()],
-        bump = bps_settings.bump,
+        seeds = [BPS_SETTINGS_V2.as_ref()],
+        bump = bps_settings_v2.bump,
     )]
-    pub bps_settings: Box<Account<'info, BpsSettings>>,
+    pub bps_settings_v2: Box<Account<'info, BpsSettingsV2>>,
 
     /// CHECK: Address check is enough.
     #[account(
         mut,
-        address = bps_settings.authority
+        address = bps_settings_v2.authority
     )]
     pub bps_treasury: AccountInfo<'info>,
 
@@ -78,7 +78,7 @@ pub fn second_player_move(
     let second_player_token_account = &mut ctx.accounts.second_player_token_account;
     let second_player_escrow = &mut ctx.accounts.second_player_escrow;
     let second_player = &mut ctx.accounts.second_player;
-    let bps_settings = &ctx.accounts.bps_settings;
+    let bps_settings_v2 = &ctx.accounts.bps_settings_v2;
     let bps_treasury = &mut ctx.accounts.bps_treasury;
     require!(
         game.game_state == GameState::CreatedAndWaitingForStart,
@@ -104,8 +104,8 @@ pub fn second_player_move(
     invoke(
         &system_instruction::transfer(
             &second_player_key,
-            &bps_settings.authority,
-            bps_settings.player_fee_lamports,
+            &bps_settings_v2.authority,
+            bps_settings_v2.player_fee_lamports,
         ),
         &[
             second_player.to_account_info(),
