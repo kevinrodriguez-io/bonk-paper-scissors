@@ -14,4 +14,6 @@ pub enum BPSError {
     FirstPlayerCantJoinAsSecondPlayer,
     #[msg("Amount exceeds balance")]
     AmountExceedsBalance,
+    #[msg("Instruction was removed")]
+    InstructionRemoved,
 }

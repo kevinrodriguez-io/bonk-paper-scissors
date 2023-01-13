@@ -29,9 +29,9 @@ export const getEscrowPDA = (
   );
 };
 
-export const getBPSSettingsPDA = (programId: web3.PublicKey) => {
+export const getBPSSettingsPDAV2 = (programId: web3.PublicKey) => {
   return web3.PublicKey.findProgramAddressSync(
-    [b`bps_settings`],
+    [b`bps_settings_v2`],
     programId
   );
 };

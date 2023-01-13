@@ -4,9 +4,10 @@ use solana_program::pubkey;
 use crate::{constants::BPS_SETTINGS, state::BpsSettings};
 
 #[derive(Accounts)]
-pub struct UpdateBpsSettings<'info> {
+pub struct CloseBpsSettingsV1<'info> {
     #[account(
         mut,
+        close = signer,
         seeds = [BPS_SETTINGS.as_ref()],
         bump = bps_settings.bump
     )]
@@ -19,11 +20,6 @@ pub struct UpdateBpsSettings<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn update_bps_settings(
-    ctx: Context<UpdateBpsSettings>,
-    time_for_penalization: i64,
-) -> Result<()> {
-    let bps_settings = &mut ctx.accounts.bps_settings;
-    bps_settings.time_for_penalization = time_for_penalization;
+pub fn close_bps_settings_v1() -> Result<()> {
     Ok(())
 }

@@ -11,6 +11,10 @@ const b = (input: TemplateStringsArray) => encode(input.join(""));
 
 const GAME_ID = "testgame";
 const SECOND_GAME_ID = "secondgame";
+const BPS_TREASURY = "bpstzWLPDetyjiD33HPGGE96MzkhEA7dhRFzhc8Ay5R";
+const BPS_TREASURY_PUBKEY = new anchor.web3.PublicKey(BPS_TREASURY);
+const SEVEN_DAYS_BN = new anchor.BN(7 * 24 * 60 * 60 * 1000); // 7 Days
+const PLAYER_FEE_LAMPORTS = new anchor.BN(0.025 * anchor.web3.LAMPORTS_PER_SOL); // 0.025 SOL
 
 const generateSalt = () => {
   const result = Uint8Array.from(randomBytes(32));
@@ -53,9 +57,19 @@ const getEscrowPDA = (
   );
 };
 
+/**
+ * @deprecated - Use getBPSSettingsPDAV2 instead
+ */
 const getBPSSettingsPDA = (programId: anchor.web3.PublicKey) => {
   return anchor.web3.PublicKey.findProgramAddressSync(
     [b`bps_settings`],
+    programId
+  );
+};
+
+const getBPSSettingsPDAV2 = (programId: anchor.web3.PublicKey) => {
+  return anchor.web3.PublicKey.findProgramAddressSync(
+    [b`bps_settings_v2`],
     programId
   );
 };
@@ -135,11 +149,11 @@ describe("bonk-paper-scissors: init bps settings", async () => {
   const program = anchor.workspace
     .BonkPaperScissors as Program<BonkPaperScissors>;
   it("init_bps_settings", async () => {
-    const [bpsSettingsPDA] = getBPSSettingsPDA(program.programId);
+    const [bpsSettingsPDA] = getBPSSettingsPDAV2(program.programId);
     const txId = await program.methods
-      .initBpsSettings(new anchor.BN(0))
+      .initBpsSettingsV2(SEVEN_DAYS_BN, PLAYER_FEE_LAMPORTS)
       .accountsStrict({
-        bpsSettings: bpsSettingsPDA,
+        bpsSettingsV2: bpsSettingsPDA,
         signer: program.provider.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
       })
@@ -215,6 +229,7 @@ describe("bonk-paper-scissors: happy-path", async () => {
     const hash = generateHash([...salt], 1);
     playerOneHash = [...hash];
 
+    const [bpsSettingsPDA] = getBPSSettingsPDAV2(program.programId);
     const tx = await program.methods
       .firstPlayerMove(GAME_ID, new anchor.BN(1_000), playerOneHash)
       .accountsStrict({
@@ -223,6 +238,8 @@ describe("bonk-paper-scissors: happy-path", async () => {
         firstPlayerEscrow: escrowOne,
         firstPlayerTokenAccount: ataOne,
         mint: mint,
+        bpsSettingsV2: bpsSettingsPDA,
+        bpsTreasury: BPS_TREASURY_PUBKEY,
         systemProgram: anchor.web3.SystemProgram.programId,
         associatedTokenProgram: SPL.ASSOCIATED_TOKEN_PROGRAM_ID,
         tokenProgram: SPL.TOKEN_PROGRAM_ID,
@@ -248,6 +265,7 @@ describe("bonk-paper-scissors: happy-path", async () => {
     playerTwoSalt = [...salt];
     const hash = generateHash([...salt], 3);
     playerTwoHash = [...hash];
+    const [bpsSettingsPDA] = getBPSSettingsPDAV2(program.programId);
     const txId = await program.methods
       .secondPlayerMove(playerTwoHash)
       .accountsStrict({
@@ -256,6 +274,8 @@ describe("bonk-paper-scissors: happy-path", async () => {
         secondPlayerEscrow: escrowTwo,
         secondPlayerTokenAccount: ataTwo,
         mint: mint,
+        bpsSettingsV2: bpsSettingsPDA,
+        bpsTreasury: BPS_TREASURY_PUBKEY,
         systemProgram: anchor.web3.SystemProgram.programId,
         associatedTokenProgram: SPL.ASSOCIATED_TOKEN_PROGRAM_ID,
         tokenProgram: SPL.TOKEN_PROGRAM_ID,
@@ -294,11 +314,11 @@ describe("bonk-paper-scissors: happy-path", async () => {
   });
 
   it("claim", async () => {
-    const [bpsSettingsPDA] = getBPSSettingsPDA(program.programId);
+    const [bpsSettingsPDA] = getBPSSettingsPDAV2(program.programId);
     const tx = await program.methods
       .claim()
       .accountsStrict({
-        bpsSettings: bpsSettingsPDA,
+        bpsSettingsV2: bpsSettingsPDA,
         firstPlayer: playerOne.publicKey,
         firstPlayerEscrow: escrowOne,
         firstPlayerTokenAccount: ataOne,
@@ -380,6 +400,7 @@ describe("bonk-paper-scissors: cancelled", () => {
     const hash = generateHash([...salt], 1);
     playerOneHash = [...hash];
 
+    const [bpsSettingsPDA] = getBPSSettingsPDAV2(program.programId);
     const txId = await program.methods
       .firstPlayerMove(SECOND_GAME_ID, new anchor.BN(1_000), playerOneHash)
       .accountsStrict({
@@ -388,6 +409,8 @@ describe("bonk-paper-scissors: cancelled", () => {
         firstPlayerEscrow: escrowOne,
         firstPlayerTokenAccount: ataOne,
         mint: mint,
+        bpsSettingsV2: bpsSettingsPDA,
+        bpsTreasury: BPS_TREASURY_PUBKEY,
         systemProgram: anchor.web3.SystemProgram.programId,
         associatedTokenProgram: SPL.ASSOCIATED_TOKEN_PROGRAM_ID,
         tokenProgram: SPL.TOKEN_PROGRAM_ID,
@@ -472,6 +495,7 @@ describe("bonk-paper-scissors: safety", () => {
     const hash = generateHash([...salt], 1);
     playerOneHash = [...hash];
 
+    const [bpsSettingsPDA] = getBPSSettingsPDAV2(program.programId);
     const txId = await program.methods
       .firstPlayerMove(SECOND_GAME_ID, new anchor.BN(1_000), playerOneHash)
       .accountsStrict({
@@ -480,6 +504,8 @@ describe("bonk-paper-scissors: safety", () => {
         firstPlayerEscrow: escrowOne,
         firstPlayerTokenAccount: ataOne,
         mint: mint,
+        bpsSettingsV2: bpsSettingsPDA,
+        bpsTreasury: BPS_TREASURY_PUBKEY,
         systemProgram: anchor.web3.SystemProgram.programId,
         associatedTokenProgram: SPL.ASSOCIATED_TOKEN_PROGRAM_ID,
         tokenProgram: SPL.TOKEN_PROGRAM_ID,

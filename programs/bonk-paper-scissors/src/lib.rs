@@ -48,31 +48,27 @@ pub mod bonk_paper_scissors {
         instructions::claim(ctx)
     }
 
-    // Tests hashing function
-    pub fn test_hashing(
-        _ctx: Context<TestHashing>,
-        choice: u8,
-        salt: [u8; 32],
-        hash: [u8; 32],
-    ) -> Result<()> {
-        instructions::test_hashing(choice, salt, hash)
-    }
-
     pub fn admin_unwind_stale_game(ctx: Context<AdminUnwindStaleGame>) -> Result<()> {
         instructions::admin_unwind_stale_game(ctx)
     }
 
-    pub fn init_bps_settings(
-        ctx: Context<InitBpsSettings>,
+    pub fn init_bps_settings_v2(
+        ctx: Context<InitBpsSettingsV2>,
         time_for_penalization: i64,
+        game_fee_lamports: u64,
     ) -> Result<()> {
-        instructions::init_bps_settings(ctx, time_for_penalization)
+        instructions::init_bps_settings_v2(ctx, time_for_penalization, game_fee_lamports)
     }
 
-    pub fn update_bps_settings(
-        ctx: Context<UpdateBpsSettings>,
+    pub fn update_bps_settings_v2(
+        ctx: Context<UpdateBpsSettingsV2>,
         time_for_penalization: i64,
+        player_fee_lamports: u64,
     ) -> Result<()> {
-        instructions::update_bps_settings(ctx, time_for_penalization)
+        instructions::update_bps_settings_v2(ctx, time_for_penalization, player_fee_lamports)
+    }
+
+    pub fn close_bps_settings_v1(_ctx: Context<CloseBpsSettingsV1>) -> Result<()> {
+        instructions::close_bps_settings_v1()
     }
 }

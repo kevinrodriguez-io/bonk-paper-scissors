@@ -5,9 +5,9 @@ use anchor_spl::{
 };
 
 use crate::{
-    constants::{BPS_SETTINGS, GAME},
+    constants::{BPS_SETTINGS_V2, GAME},
     error::BPSError,
-    state::{BpsSettings, Choice, Game, GameState},
+    state::{BpsSettingsV2, Choice, Game, GameState},
 };
 
 #[derive(Accounts)]
@@ -24,10 +24,10 @@ pub struct Claim<'info> {
     pub game: Box<Account<'info, Game>>,
 
     #[account(
-        seeds = [BPS_SETTINGS.as_ref()],
-        bump = bps_settings.bump
+        seeds = [BPS_SETTINGS_V2.as_ref()],
+        bump = bps_settings_v2.bump
     )]
-    pub bps_settings: Account<'info, BpsSettings>,
+    pub bps_settings_v2: Account<'info, BpsSettingsV2>,
 
     #[account(
         mut,
@@ -89,7 +89,7 @@ pub fn claim(ctx: Context<Claim>) -> Result<()> {
     let clock = Clock::get()?;
     let game = &mut ctx.accounts.game;
     let mint = &ctx.accounts.mint;
-    let bps_settings = &ctx.accounts.bps_settings;
+    let bps_settings_v2 = &ctx.accounts.bps_settings_v2;
     let first_player = &ctx.accounts.first_player;
     let first_player_escrow = &mut ctx.accounts.first_player_escrow;
     let first_player_token_account = &mut ctx.accounts.first_player_token_account;
@@ -118,7 +118,7 @@ pub fn claim(ctx: Context<Claim>) -> Result<()> {
     let second_player_choice = game.second_player_choice.as_ref().unwrap();
 
     let first_player_wins = game
-        .did_second_player_forfeit(clock.unix_timestamp, bps_settings.time_for_penalization)
+        .did_second_player_forfeit(clock.unix_timestamp, bps_settings_v2.time_for_penalization)
         || match (first_player_choice, second_player_choice) {
             (Choice::Bonk, Choice::Scissors) => true,
             (Choice::Paper, Choice::Bonk) => true,
@@ -127,7 +127,7 @@ pub fn claim(ctx: Context<Claim>) -> Result<()> {
         };
 
     let second_player_wins = game
-        .did_first_player_forfeit(clock.unix_timestamp, bps_settings.time_for_penalization)
+        .did_first_player_forfeit(clock.unix_timestamp, bps_settings_v2.time_for_penalization)
         || match (second_player_choice, first_player_choice) {
             (Choice::Bonk, Choice::Scissors) => true,
             (Choice::Paper, Choice::Bonk) => true,

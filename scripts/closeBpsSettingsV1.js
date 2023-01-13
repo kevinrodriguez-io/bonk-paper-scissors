@@ -9,7 +9,7 @@ const programId = new anchor.web3.PublicKey(
 
 const encode = (str) => new TextEncoder().encode(str);
 const b = (input) => encode(input.join(""));
-const getBPSSettingsPDA = () =>
+const getBPSSettingsPDAV1 = () =>
   anchor.web3.PublicKey.findProgramAddressSync([b`bps_settings`], programId);
 
 (async () => {
@@ -32,9 +32,9 @@ const getBPSSettingsPDA = () =>
   const provider = new anchor.AnchorProvider(connection, wallet, {});
   const program = new anchor.Program(IDL, programId, provider);
 
-  const [bpsSettingsPDA] = getBPSSettingsPDA();
+  const [bpsSettingsPDA] = getBPSSettingsPDAV1();
   const txId = await program.methods
-    .updateBpsSettings(new anchor.BN(1 * 24 * 60 * 60 * 1000))
+    .closeBpsSettingsV1()
     .accountsStrict({
       bpsSettings: bpsSettingsPDA,
       signer: program.provider.publicKey,

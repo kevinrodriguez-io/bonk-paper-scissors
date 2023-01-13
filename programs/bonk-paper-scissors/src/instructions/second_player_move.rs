@@ -1,13 +1,16 @@
-use anchor_lang::prelude::*;
+use anchor_lang::{
+    prelude::*,
+    solana_program::{program::invoke, system_instruction},
+};
 use anchor_spl::{
     associated_token::AssociatedToken,
     token::{transfer, Mint, Token, TokenAccount, Transfer},
 };
 
 use crate::{
-    constants::{ESCROW, GAME, SECOND_PLAYER},
+    constants::{BPS_SETTINGS_V2, ESCROW, GAME, SECOND_PLAYER},
     error::BPSError,
-    state::{Game, GameState},
+    state::{BpsSettingsV2, Game, GameState},
 };
 
 #[derive(Accounts)]
@@ -40,13 +43,27 @@ pub struct SecondPlayerMove<'info> {
     )]
     pub second_player_token_account: Account<'info, TokenAccount>,
     #[account(address = game.mint)]
-    pub mint: Account<'info, Mint>,
+    pub mint: Box<Account<'info, Mint>>,
 
     #[account(
         mut,
         constraint = game.first_player != second_player.key() @ BPSError::FirstPlayerCantJoinAsSecondPlayer,
     )]
     pub second_player: Signer<'info>,
+
+    #[account(
+        seeds = [BPS_SETTINGS_V2.as_ref()],
+        bump = bps_settings_v2.bump,
+    )]
+    pub bps_settings_v2: Box<Account<'info, BpsSettingsV2>>,
+
+    /// CHECK: Address check is enough.
+    #[account(
+        mut,
+        address = bps_settings_v2.authority
+    )]
+    pub bps_treasury: AccountInfo<'info>,
+
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
@@ -60,26 +77,45 @@ pub fn second_player_move(
     let game = &mut ctx.accounts.game;
     let second_player_token_account = &mut ctx.accounts.second_player_token_account;
     let second_player_escrow = &mut ctx.accounts.second_player_escrow;
+    let second_player = &mut ctx.accounts.second_player;
+    let bps_settings_v2 = &ctx.accounts.bps_settings_v2;
+    let bps_treasury = &mut ctx.accounts.bps_treasury;
     require!(
         game.game_state == GameState::CreatedAndWaitingForStart,
         BPSError::InvalidGameState
     );
 
-    let second_player = ctx.accounts.second_player.key();
+    let second_player_key = second_player.key();
 
     // Transfer the tokens to the escrow account.
-    let cpi_context = CpiContext::new(
-        ctx.accounts.token_program.to_account_info(),
-        Transfer {
-            from: second_player_token_account.to_account_info(),
-            to: second_player_escrow.to_account_info(),
-            authority: ctx.accounts.second_player.to_account_info(),
-        },
-    );
-    transfer(cpi_context, game.amount_to_match)?;
+    transfer(
+        CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            Transfer {
+                from: second_player_token_account.to_account_info(),
+                to: second_player_escrow.to_account_info(),
+                authority: second_player.to_account_info(),
+            },
+        ),
+        game.amount_to_match,
+    )?;
+
+    // Pay the fee to the treasury.
+    invoke(
+        &system_instruction::transfer(
+            &second_player_key,
+            &bps_settings_v2.authority,
+            bps_settings_v2.player_fee_lamports,
+        ),
+        &[
+            second_player.to_account_info(),
+            bps_treasury.to_account_info(),
+            ctx.accounts.system_program.to_account_info(),
+        ],
+    )?;
 
     game.set_second_player(
-        second_player,
+        second_player_key,
         second_player_hash,
         second_player_escrow.key(),
     );
