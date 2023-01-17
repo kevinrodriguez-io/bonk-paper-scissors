@@ -12,7 +12,7 @@ export const gameForfeitCondition = (
   bpsSettingsAccount: BPSSettingsAccount
 ): GameForfeitConditionResult => {
   const timeForPenalization = bpsSettingsAccount.timeForPenalization;
-  const now = new BN(new Date().getTime());
+  const now = new BN(Math.floor(Date.now() / 1000));
   if (!game.gameState.startedAndWaitingForReveal)
     return {
       didForfeit: false,
