@@ -2,7 +2,7 @@
 seeds = false
 skip-lint = false
 [programs.localnet]
-bonk_paper_scissors = "32TtZ4MYWk6zzwg8Eok3x6m85JQgcVsN97cGfUhfpNb9"
+bonk_paper_scissors = "bonk8yVf477u7s7nqttS6VXFTCjbV2S5MKxmojGAa4i"
 
 [registry]
 url = "https://api.apr.dev"

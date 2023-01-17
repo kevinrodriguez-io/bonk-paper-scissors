@@ -2,7 +2,6 @@ import "@solana/wallet-adapter-react-ui/styles.css";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/globals.css";
 
-import { Neucha } from "@next/font/google";
 import type { AppProps } from "next/app";
 import { ToastContainer } from "react-toastify";
 import { useMemo } from "react";
@@ -21,7 +20,6 @@ import {
 } from "@solana/wallet-adapter-wallets";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 
-
 const BPSApp = ({ Component, pageProps }: AppProps) => {
   const network = WalletAdapterNetwork.Mainnet;
   const endpoint = useMemo(() => process.env.NEXT_PUBLIC_RPC_URL!, []);
@@ -38,7 +36,7 @@ const BPSApp = ({ Component, pageProps }: AppProps) => {
   );
 
   return (
-    <main>
+    <main className={`font-sans`}>
       <ConnectionProvider endpoint={endpoint}>
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>

@@ -10,9 +10,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: colors.slate,
+        primary: colors.blue,
       },
       fontFamily: {
+        sans: ["Neucha", "sans-serif"],
       },
     },
   },

@@ -1,7 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Neucha&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 .wallet-adapter-button.wallet-adapter-button-trigger {
   @apply bg-primary-700;
+  @apply font-sans;
 }

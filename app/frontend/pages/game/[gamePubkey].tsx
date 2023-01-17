@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { z } from "zod";
 import bs58 from "bs58";
+import { useReadLocalStorage } from "usehooks-ts";
 
 import type { ChoiceLocalStorageResult } from "../../types/ChoiceLocalStorageResult";
 import { ConnectWalletCard } from "../../components/ConnectWalletCard";
@@ -34,18 +35,18 @@ import { getChoiceKey, getSaltKey } from "../../lib/storage";
 import { capitalize, splitLowerCaseItemIntoWords } from "../../lib/string";
 import { CanBeLoading } from "../../types/CanBeLoading";
 import { Choice } from "../../types/Choice";
-import { useReadLocalStorage } from "usehooks-ts";
 import { GameAccount } from "../../types/GameAccount";
 import { useReveal } from "../../hooks/useReveal";
 import {
   useWalletIsGameLoserButHasntClaimed,
-  useWalletIsGameWinner,
   useWalletIsGameWinnerButHasntClaimed,
 } from "../../hooks/useIsGameWinner";
 import { useClaimGame } from "../../hooks/useClaimGame";
 import { SuccessModal } from "../../components/SuccessModal";
 import { EnvelopeIcon, ShieldCheckIcon } from "@heroicons/react/20/solid";
 import { numberToChoice } from "../../lib/choice";
+import { useBPSSettings } from "../../hooks/useBPSSettings";
+import { gameForfeitCondition, isDraw } from "../../lib/game";
 
 type ClaimCardProps = {
   game: GameAccount;
@@ -57,7 +58,7 @@ const ClaimCard = ({ game, gamePubkey }: ClaimCardProps) => {
     useWalletIsGameWinnerButHasntClaimed(game);
   const isLoserButGameHasntBeenClaimed =
     useWalletIsGameLoserButHasntClaimed(game);
-  const wallet = useWallet();
+
   const anchorWallet = useAnchorWallet();
   const { connection } = useConnection();
   const [showModal, setShowModal] = useState(false);
@@ -103,7 +104,7 @@ const ClaimCard = ({ game, gamePubkey }: ClaimCardProps) => {
 
   const isGameClaimed = !!game.winner;
 
-  const gameIsDraw = !!game.gameState.draw;
+  const gameIsDraw = isDraw(game);
 
   return (
     <>
@@ -564,9 +565,8 @@ type GameContentsProps = {
 const GameContents = ({ gamePubkey }: GameContentsProps) => {
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
-  const { data, error, isLoading, mutate } = useGame(
-    new web3.PublicKey(gamePubkey)
-  );
+  const game = useGame(new web3.PublicKey(gamePubkey));
+  const bpsSettings = useBPSSettings();
   const { publicKey } = useWallet();
   const [salt, setSalt] = useState<SaltResult | null>(null);
   const [choice, setChoice] = useState<Choice | null>(null);
@@ -616,12 +616,11 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
   });
   const isAdminWallet = useIsAdminWallet();
   const isGameFirstPlayer = useWalletMatchesPubkey(
-    data?.firstPlayer.toBase58()
+    game.data?.firstPlayer.toBase58()
   );
   const isGameSecondPlayer = useWalletMatchesPubkey(
-    data?.secondPlayer?.toBase58()
+    game.data?.secondPlayer?.toBase58()
   );
-
   const secondPlayerMove = useSecondPlayerMove({
     onSuccess: ({ txId, salt, gamePDA, choice, walletPubKey }) => {
       toast.success(
@@ -659,7 +658,7 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
   });
 
   useGameChangesListener(new web3.PublicKey(gamePubkey), (acc) => {
-    mutate(acc);
+    game.mutate(acc);
     toast("The game was updated!");
   });
 
@@ -707,72 +706,87 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
   const gameIsJoinable =
     publicKey &&
     !isGameFirstPlayer &&
-    data?.gameState.createdAndWaitingForStart;
+    game.data?.gameState.createdAndWaitingForStart;
 
-  const stuffIsLoading = secondPlayerMove.isMutating || isLoading;
+  const stuffIsLoading =
+    secondPlayerMove.isMutating || bpsSettings.isLoading || game.isLoading;
 
   const isAdminClosable =
-    isAdminWallet && data?.gameState.startedAndWaitingForReveal;
+    isAdminWallet && game.data?.gameState.startedAndWaitingForReveal;
 
   const isCancellable =
-    isGameFirstPlayer && data?.gameState.createdAndWaitingForStart;
+    isGameFirstPlayer && game.data?.gameState.createdAndWaitingForStart;
 
   const isRevealable =
-    data?.gameState.startedAndWaitingForReveal &&
-    data?.firstPlayerHash &&
-    data?.secondPlayerHash &&
+    game.data?.gameState.startedAndWaitingForReveal &&
+    game.data?.firstPlayerHash &&
+    game.data?.secondPlayerHash &&
     // !data.firstPlayerChoice &&
     // !data.secondPlayerChoice &&
     (isGameFirstPlayer || isGameSecondPlayer);
 
-  const isClaimable =
-    data?.firstPlayerChoice &&
-    data?.secondPlayerChoice &&
-    !data?.gameState.draw &&
-    !data?.gameState.firstPlayerWon &&
-    !data?.gameState.secondPlayerWon;
-
-  if (isLoading) {
+  if (game.isLoading || bpsSettings.isLoading) {
     return <LoadingCard message="Loading game" />;
   }
 
-  if (error || !data) {
-    console.log({ error });
+  if (game.error || !game.data || bpsSettings.error || !bpsSettings.data) {
+    console.log(game.error);
+    console.log(bpsSettings.error);
     return <NotFoundCard />;
   }
+
+  const { didForfeit, winnerPlayerFromForfeit } = gameForfeitCondition(
+    game.data,
+    bpsSettings.data
+  );
+
+  console.log({
+    didForfeit,
+    winnerPlayerFromForfeit,
+  });
+
+  const isClaimable =
+    didForfeit ||
+    (game.data.firstPlayerChoice &&
+      game.data.secondPlayerChoice &&
+      !game.data.gameState.draw &&
+      !game.data.gameState.firstPlayerWon &&
+      !game.data.gameState.secondPlayerWon);
 
   return (
     <>
       <GameCard
         className="shadow"
         pubKey={new web3.PublicKey(gamePubkey)}
-        winner={data.winner ?? undefined}
+        winner={game.data.winner ?? undefined}
         firstPlayerChoice={
-          data.firstPlayerChoice
+          game.data.firstPlayerChoice
             ? capitalize(
                 splitLowerCaseItemIntoWords(
-                  getValueFromEnumVariant(data.firstPlayerChoice)
+                  getValueFromEnumVariant(game.data.firstPlayerChoice)
                 )
               )
             : undefined
         }
         secondPlayerChoice={
-          data.secondPlayerChoice
+          game.data.secondPlayerChoice
             ? capitalize(
                 splitLowerCaseItemIntoWords(
-                  getValueFromEnumVariant(data.secondPlayerChoice)
+                  getValueFromEnumVariant(game.data.secondPlayerChoice)
                 )
               )
             : undefined
         }
-        gameId={data.gameId}
-        createdAt={data.createdAt}
-        firstPlayer={data.firstPlayer}
-        mint={data.mint}
-        amountToMatch={data.amountToMatch}
-        secondPlayer={data.secondPlayer ?? undefined}
+        gameId={game.data.gameId}
+        createdAt={game.data.createdAt}
+        firstPlayer={game.data.firstPlayer}
+        mint={game.data.mint}
+        amountToMatch={game.data.amountToMatch}
+        secondPlayer={game.data.secondPlayer ?? undefined}
         status={capitalize(
-          splitLowerCaseItemIntoWords(getValueFromEnumVariant(data.gameState))
+          splitLowerCaseItemIntoWords(
+            getValueFromEnumVariant(game.data.gameState)
+          )
         )}
       />
       {gameIsJoinable ? (
@@ -786,14 +800,14 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
         <div className="mt-4">
           <button
             type="button"
-            onClick={() => {
-              adminCloseStaleGame.adminCloseStaleGame({
+            onClick={async () => {
+              await adminCloseStaleGame.adminCloseStaleGame({
                 dependencies: { wallet: wallet!, connection },
                 payload: {
                   gamePubKey: new web3.PublicKey(gamePubkey),
                 },
               });
-              mutate();
+              game.mutate();
             }}
             className="ml-2 inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
           >
@@ -805,14 +819,14 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
         <div className="mt-4">
           <button
             type="button"
-            onClick={() => {
-              cancelGame.cancelGame({
+            onClick={async () => {
+              await cancelGame.cancelGame({
                 dependencies: { wallet: wallet!, connection },
                 payload: {
                   gamePubKey: new web3.PublicKey(gamePubkey),
                 },
               });
-              mutate();
+              game.mutate();
             }}
             className="ml-2 inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
           >
@@ -821,9 +835,15 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
         </div>
       ) : null}
       {isRevealable ? (
-        <RevealCard key={revealCardKey} game={data} gamePubkey={gamePubkey} />
+        <RevealCard
+          key={revealCardKey}
+          game={game.data}
+          gamePubkey={gamePubkey}
+        />
       ) : null}
-      {isClaimable ? <ClaimCard game={data} gamePubkey={gamePubkey} /> : null}
+      {isClaimable ? (
+        <ClaimCard game={game.data} gamePubkey={gamePubkey} />
+      ) : null}
     </>
   );
 };

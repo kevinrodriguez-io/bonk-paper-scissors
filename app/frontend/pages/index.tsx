@@ -60,7 +60,7 @@ const Home: NextPage = () => {
               {filteredData.map((game) => (
                 <>
                   <GameCard
-                    className="bg-gray-100 shadow-xl shadow-primary-500"
+                    className="bg-gray-100 shadow-xl shadow-primary-900 border-primary-500 border-solid border-x-2 border-y-2"
                     key={game.publicKey.toBase58()}
                     showGoToGame
                     winner={game.account.winner ?? undefined}

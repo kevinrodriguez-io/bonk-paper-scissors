@@ -101,10 +101,10 @@ pub fn claim(ctx: Context<Claim>) -> Result<()> {
         game.game_state == GameState::StartedAndWaitingForReveal,
         BPSError::InvalidGameState
     );
-    require!(
-        game.first_player_revealed_at.is_some() && game.second_player_revealed_at.is_some(),
-        BPSError::InvalidGameState
-    );
+    // require!(
+    //     game.first_player_revealed_at.is_some() && game.second_player_revealed_at.is_some(),
+    //     BPSError::InvalidGameState
+    // );
 
     let game_seeds = &[
         b"game",
