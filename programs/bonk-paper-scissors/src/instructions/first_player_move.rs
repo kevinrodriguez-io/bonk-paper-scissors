@@ -6,12 +6,12 @@ use anchor_spl::{
     associated_token::AssociatedToken,
     token::{transfer, Mint, Token, TokenAccount, Transfer},
 };
-// use solana_program::pubkey;
+use solana_program::pubkey;
 
 use crate::{
-    constants::{ESCROW, FIRST_PLAYER, GAME, BPS_SETTINGS_V2},
+    constants::{BPS_SETTINGS_V2, ESCROW, FIRST_PLAYER, GAME},
     error::BPSError,
-    state::{Game, BpsSettingsV2},
+    state::{BpsSettingsV2, Game},
 };
 
 #[derive(Accounts)]
@@ -52,7 +52,7 @@ pub struct FirstPlayerMove<'info> {
     pub first_player_token_account: Account<'info, TokenAccount>,
     #[account(
         // Constraint for Bonk ;)
-        // address = pubkey!("DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263")
+        address = pubkey!("DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263")
     )]
     pub mint: Box<Account<'info, Mint>>,
 

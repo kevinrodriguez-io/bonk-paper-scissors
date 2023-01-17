@@ -8,7 +8,7 @@ use anchor_lang::prelude::*;
 use instructions::*;
 use state::Choice;
 
-declare_id!("32TtZ4MYWk6zzwg8Eok3x6m85JQgcVsN97cGfUhfpNb9");
+declare_id!("bonk8yVf477u7s7nqttS6VXFTCjbV2S5MKxmojGAa4i");
 
 #[program]
 pub mod bonk_paper_scissors {
@@ -66,9 +66,5 @@ pub mod bonk_paper_scissors {
         player_fee_lamports: u64,
     ) -> Result<()> {
         instructions::update_bps_settings_v2(ctx, time_for_penalization, player_fee_lamports)
-    }
-
-    pub fn close_bps_settings_v1(_ctx: Context<CloseBpsSettingsV1>) -> Result<()> {
-        instructions::close_bps_settings_v1()
     }
 }

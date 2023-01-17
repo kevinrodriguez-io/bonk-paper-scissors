@@ -3,14 +3,21 @@ const { TextEncoder } = require("util");
 const fs = require("fs/promises");
 const IDL = require("../target/idl/bonk_paper_scissors.json");
 
-const programId = new anchor.web3.PublicKey(
+const PROGRAM_ID_DEV = new anchor.web3.PublicKey(
   "32TtZ4MYWk6zzwg8Eok3x6m85JQgcVsN97cGfUhfpNb9"
+);
+
+const PROGRAM_ID_PROD = new anchor.web3.PublicKey(
+  "bonk8yVf477u7s7nqttS6VXFTCjbV2S5MKxmojGAa4i"
 );
 
 const encode = (str) => new TextEncoder().encode(str);
 const b = (input) => encode(input.join(""));
 const getBPSSettingsPDA = () =>
-  anchor.web3.PublicKey.findProgramAddressSync([b`bps_settings_v2`], programId);
+  anchor.web3.PublicKey.findProgramAddressSync(
+    [b`bps_settings_v2`],
+    PROGRAM_ID_PROD
+  );
 
 (async () => {
   const privateKey = new Uint8Array(
@@ -30,7 +37,7 @@ const getBPSSettingsPDA = () =>
   );
 
   const provider = new anchor.AnchorProvider(connection, wallet, {});
-  const program = new anchor.Program(IDL, programId, provider);
+  const program = new anchor.Program(IDL, PROGRAM_ID_PROD, provider);
 
   const [bpsSettingsPDA] = getBPSSettingsPDA();
   const txId = await program.methods

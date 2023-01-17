@@ -89,15 +89,6 @@ pub fn admin_unwind_stale_game(ctx: Context<AdminUnwindStaleGame>) -> Result<()>
         game.game_state == GameState::StartedAndWaitingForReveal,
         BPSError::InvalidGameState
     );
-    // require!(
-    //     game.first_player_revealed_at.is_none(),
-    //     BPSError::InvalidGameState
-    // );
-    // require!(
-    //     game.second_player_revealed_at.is_none(),
-    //     BPSError::InvalidGameState
-    // );
-
     let game_seeds = &[
         b"game",
         game.first_player.as_ref(),

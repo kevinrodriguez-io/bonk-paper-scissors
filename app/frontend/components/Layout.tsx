@@ -98,7 +98,7 @@ export const Layout = ({ children, title, className }: LayoutProps) => {
                     </div>
                   </Transition.Child>
                   <div className="flex flex-shrink-0 items-center px-4">
-                    <img className="h-8 w-auto" src="/bonk-logo.jpeg" />
+                    <img className="h-8 w-auto" src="/android-chrome-192x192.png" />
                   </div>
                   <div className="mt-5 h-0 flex-1 overflow-y-auto">
                     <nav className="space-y-1 px-2">
@@ -138,7 +138,7 @@ export const Layout = ({ children, title, className }: LayoutProps) => {
             <div className="flex flex-shrink-0 items-center px-4">
               <img
                 className="h-8 w-auto"
-                src="/bonk-logo.jpeg"
+                src="/android-chrome-192x192.png"
                 alt="Bonk Logo"
               />
             </div>
