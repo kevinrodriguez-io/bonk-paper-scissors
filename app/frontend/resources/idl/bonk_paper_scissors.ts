@@ -421,46 +421,9 @@ export type BonkPaperScissors = {
           "type": "u64"
         }
       ]
-    },
-    {
-      "name": "closeBpsSettingsV1",
-      "accounts": [
-        {
-          "name": "bpsSettings",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "signer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
     }
   ],
   "accounts": [
-    {
-      "name": "bpsSettings",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "bump",
-            "type": "u8"
-          },
-          {
-            "name": "timeForPenalization",
-            "type": "i64"
-          }
-        ]
-      }
-    },
     {
       "name": "bpsSettingsV2",
       "type": {
@@ -1122,46 +1085,9 @@ export const IDL: BonkPaperScissors = {
           "type": "u64"
         }
       ]
-    },
-    {
-      "name": "closeBpsSettingsV1",
-      "accounts": [
-        {
-          "name": "bpsSettings",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "signer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
     }
   ],
   "accounts": [
-    {
-      "name": "bpsSettings",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "bump",
-            "type": "u8"
-          },
-          {
-            "name": "timeForPenalization",
-            "type": "i64"
-          }
-        ]
-      }
-    },
     {
       "name": "bpsSettingsV2",
       "type": {
