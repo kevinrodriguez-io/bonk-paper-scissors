@@ -13,6 +13,7 @@ module.exports = {
         primary: colors.slate,
       },
       fontFamily: {
+        sans: ["Neucha", "sans-serif"],
       },
     },
   },
