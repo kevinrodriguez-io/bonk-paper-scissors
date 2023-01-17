@@ -133,7 +133,7 @@ const FirstCard = ({
                   type="button"
                   className="flex-1 border-t-teal-500 border-t-4 hover:bg-teal-100 text-sm"
                   onClick={() => {
-                    setValue("amount", availableUIAmount * 0.25);
+                    setValue("amount", Math.floor(availableUIAmount * 0.25));
                   }}
                 >
                   25%
@@ -142,25 +142,25 @@ const FirstCard = ({
                   type="button"
                   className="flex-1 border-t-green-500 border-t-4 hover:bg-green-100 text-sm"
                   onClick={() => {
-                    setValue("amount", availableUIAmount * 0.5);
+                    setValue("amount", Math.floor(availableUIAmount * 0.5));
                   }}
                 >
                   50%
                 </button>
                 <button
                   type="button"
-                  className="flex-1 border-t-yellow-500 border-t-4 hover:bg-yellow-100 text-sm"
+                  className="flex-1 border-t-lime-500 border-t-4 hover:bg-yellow-100 text-sm"
                   onClick={() => {
-                    setValue("amount", availableUIAmount * 0.75);
+                    setValue("amount", Math.floor(availableUIAmount * 0.75));
                   }}
                 >
                   75%
                 </button>
                 <button
                   type="button"
-                  className="flex-1 border-t-orange-500 border-t-4 hover:bg-orange-100 text-sm"
+                  className="flex-1 border-t-yellow-500 border-t-4 hover:bg-orange-100 text-sm"
                   onClick={() => {
-                    setValue("amount", availableUIAmount * 10);
+                    setValue("amount", Math.floor(availableUIAmount * 10));
                   }}
                 >
                   100%
