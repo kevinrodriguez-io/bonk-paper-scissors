@@ -46,7 +46,7 @@ import { SuccessModal } from "../../components/SuccessModal";
 import { EnvelopeIcon, ShieldCheckIcon } from "@heroicons/react/20/solid";
 import { numberToChoice } from "../../lib/choice";
 import { useBPSSettings } from "../../hooks/useBPSSettings";
-import { gameForfeitCondition } from "../../lib/game";
+import { gameForfeitCondition, isDraw } from "../../lib/game";
 
 type ClaimCardProps = {
   game: GameAccount;
@@ -58,6 +58,7 @@ const ClaimCard = ({ game, gamePubkey }: ClaimCardProps) => {
     useWalletIsGameWinnerButHasntClaimed(game);
   const isLoserButGameHasntBeenClaimed =
     useWalletIsGameLoserButHasntClaimed(game);
+
   const anchorWallet = useAnchorWallet();
   const { connection } = useConnection();
   const [showModal, setShowModal] = useState(false);
@@ -103,7 +104,7 @@ const ClaimCard = ({ game, gamePubkey }: ClaimCardProps) => {
 
   const isGameClaimed = !!game.winner;
 
-  const gameIsDraw = !!game.gameState.draw;
+  const gameIsDraw = isDraw(game);
 
   return (
     <>
@@ -742,7 +743,7 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
   console.log({
     didForfeit,
     winnerPlayerFromForfeit,
-  })
+  });
 
   const isClaimable =
     didForfeit ||

@@ -1,6 +1,7 @@
 import { BN } from "@project-serum/anchor";
 import { BPSSettingsAccount } from "../types/BPSSettingsAccount";
 import { GameAccount } from "../types/GameAccount";
+import { getValueFromEnumVariant } from "./solana/getValueFromEnumVariant";
 
 type GameForfeitConditionResult = {
   didForfeit: boolean;
@@ -51,4 +52,13 @@ export const gameForfeitCondition = (
     didForfeit: false,
     winnerPlayerFromForfeit: null,
   };
+};
+
+export const isDraw = (game: GameAccount): boolean => {
+  const { firstPlayerChoice, secondPlayerChoice } = game;
+  if (!firstPlayerChoice || !secondPlayerChoice) return false;
+  return (
+    getValueFromEnumVariant(firstPlayerChoice) ===
+    getValueFromEnumVariant(secondPlayerChoice)
+  );
 };
