@@ -3,15 +3,15 @@ const { TextEncoder } = require("util");
 const fs = require("fs/promises");
 const IDL = require("../target/idl/bonk_paper_scissors.json");
 
-// DEV
-const PROGRAM_ID = new anchor.web3.PublicKey(
-  "32TtZ4MYWk6zzwg8Eok3x6m85JQgcVsN97cGfUhfpNb9"
-);
+// // DEV
+// const PROGRAM_ID = new anchor.web3.PublicKey(
+//   "32TtZ4MYWk6zzwg8Eok3x6m85JQgcVsN97cGfUhfpNb9"
+// );
 
 // PROD
-// const PROGRAM_ID = new anchor.web3.PublicKey(
-//   "bonk8yVf477u7s7nqttS6VXFTCjbV2S5MKxmojGAa4i"
-// );
+const PROGRAM_ID = new anchor.web3.PublicKey(
+  "bonk8yVf477u7s7nqttS6VXFTCjbV2S5MKxmojGAa4i"
+);
 
 const encode = (str) => new TextEncoder().encode(str);
 const b = (input) => encode(input.join(""));
