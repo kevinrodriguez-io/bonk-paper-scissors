@@ -11,7 +11,18 @@ const BPSDocument: FC<DocumentProps> = () => {
           "repeating-linear-gradient(white 0px, white 24px, #00000022 25px)",
       }}
     >
-      <Head />
+      <Head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="crossorigin"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Neucha&display=swap"
+          rel="stylesheet"
+        />
+      </Head>
       <body className="h-full">
         <Main />
         <NextScript />
