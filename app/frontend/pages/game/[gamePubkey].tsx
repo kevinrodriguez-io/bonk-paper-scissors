@@ -622,7 +622,7 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
     game.data?.secondPlayer?.toBase58()
   );
   const secondPlayerMove = useSecondPlayerMove({
-    onSuccess: ({ txId, salt, gamePDA, choice, walletPubKey }) => {
+    onSuccess: ({ txId }) => {
       toast.success(
         () => {
           const url = `https://explorer.solana.com/tx/${txId}`;
@@ -641,17 +641,6 @@ const GameContents = ({ gamePubkey }: GameContentsProps) => {
           );
         },
         { autoClose: false }
-      );
-      localStorage.setItem(
-        getChoiceKey(gamePDA.toBase58(), walletPubKey.toBase58()),
-        JSON.stringify({ choice: choice! })
-      );
-      localStorage.setItem(
-        getSaltKey(gamePDA.toBase58(), walletPubKey.toBase58()),
-        JSON.stringify({
-          bytesBs58: salt!.bytesBs58,
-          randomBytes: [...salt!.randomBytes],
-        })
       );
     },
     onError: (err) => toast.error(err.message, { autoClose: false }),

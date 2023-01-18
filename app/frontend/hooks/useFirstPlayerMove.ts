@@ -5,12 +5,21 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { IDL } from "../resources/idl/bonk_paper_scissors";
-import { getBPSProgramId, getBPSTreasuryPubKey, getMintPubKey } from "../constants/constants";
+import {
+  getBPSProgramId,
+  getBPSTreasuryPubKey,
+  getMintPubKey,
+} from "../constants/constants";
 import { findTokenAccountPKForMintByOwner } from "../lib/solana/findTokenAccountForMint";
 import { getHash, SaltResult } from "../lib/crypto/crypto";
 import { Choice } from "../types/Choice";
-import { getBPSSettingsPDAV2, getEscrowPDA, getGamePDA } from "../lib/solana/pdaHelpers";
+import {
+  getBPSSettingsPDAV2,
+  getEscrowPDA,
+  getGamePDA,
+} from "../lib/solana/pdaHelpers";
 import type { AnchorHookDependencies } from "../types/AnchorHookDependencies";
+import { getChoiceKey, getSaltKey } from "../lib/storage";
 
 type FirstPlayerMovePayload = {
   amount: BN;
@@ -52,6 +61,18 @@ const firstPlayerMove = async (
     provider.wallet.publicKey,
     gameId,
     program.programId
+  );
+
+  localStorage.setItem(
+    getChoiceKey(gamePDA.toBase58(), wallet.publicKey.toBase58()),
+    JSON.stringify({ choice: choice! })
+  );
+  localStorage.setItem(
+    getSaltKey(gamePDA.toBase58(), wallet.publicKey.toBase58()),
+    JSON.stringify({
+      bytesBs58: salt!.bytesBs58,
+      randomBytes: [...salt!.randomBytes],
+    })
   );
 
   const [playerEscrowPDA] = getEscrowPDA("first", gamePDA, program.programId);

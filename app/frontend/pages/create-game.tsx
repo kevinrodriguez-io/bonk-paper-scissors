@@ -422,7 +422,7 @@ const CreateGame: NextPage = () => {
   const tokenAccoutForMint = useTokenAccountForMint(MINT);
 
   const firstPlayerMove = useFirstPlayerMove({
-    onSuccess: ({ txId, gamePDA, choice, salt, walletPubKey }) => {
+    onSuccess: ({ txId }) => {
       toast.success(
         () => {
           const url = `https://explorer.solana.com/tx/${txId}`;
@@ -441,17 +441,6 @@ const CreateGame: NextPage = () => {
           );
         },
         { autoClose: false }
-      );
-      localStorage.setItem(
-        getChoiceKey(gamePDA.toBase58(), walletPubKey.toBase58()),
-        JSON.stringify({ choice: choice! })
-      );
-      localStorage.setItem(
-        getSaltKey(gamePDA.toBase58(), walletPubKey.toBase58()),
-        JSON.stringify({
-          bytesBs58: salt!.bytesBs58,
-          randomBytes: [...salt!.randomBytes],
-        })
       );
     },
     onError: (err) => toast.error(err.message, { autoClose: false }),
