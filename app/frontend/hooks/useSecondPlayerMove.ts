@@ -5,13 +5,22 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { IDL } from "../resources/idl/bonk_paper_scissors";
-import { getBPSProgramId, getBPSTreasuryPubKey, getMintPubKey } from "../constants/constants";
+import {
+  getBPSProgramId,
+  getBPSTreasuryPubKey,
+  getMintPubKey,
+} from "../constants/constants";
 import { findTokenAccountPKForMintByOwner } from "../lib/solana/findTokenAccountForMint";
 import { getHash, SaltResult } from "../lib/crypto/crypto";
 import { Choice } from "../types/Choice";
-import { getBPSSettingsPDAV2, getEscrowPDA, getGamePDA } from "../lib/solana/pdaHelpers";
+import {
+  getBPSSettingsPDAV2,
+  getEscrowPDA,
+  getGamePDA,
+} from "../lib/solana/pdaHelpers";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 import { AnchorHookDependencies } from "../types/AnchorHookDependencies";
+import { getChoiceKey, getSaltKey } from "../lib/storage";
 
 type SecondPlayerMovePayload = {
   gamePubKey: web3.PublicKey;
@@ -57,6 +66,18 @@ const secondPlayerMove = async (
 
   const [bpsSettingsPDA] = getBPSSettingsPDAV2(program.programId);
   const bpsTreasury = getBPSTreasuryPubKey();
+
+  localStorage.setItem(
+    getChoiceKey(gamePubKey.toBase58(), wallet.publicKey.toBase58()),
+    JSON.stringify({ choice: choice! })
+  );
+  localStorage.setItem(
+    getSaltKey(gamePubKey.toBase58(), wallet.publicKey.toBase58()),
+    JSON.stringify({
+      bytesBs58: salt!.bytesBs58,
+      randomBytes: [...salt!.randomBytes],
+    })
+  );
 
   const txId = await program.methods
     .secondPlayerMove([...hash.hash])
