@@ -2,9 +2,9 @@ use anchor_lang::prelude::*;
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
 pub enum Choice {
-    Bonk = 1,
-    Paper = 2,
-    Scissors = 3,
+    Bonk,
+    Paper,
+    Scissors,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
@@ -56,13 +56,13 @@ impl Game {
         32 + // first_player
         32 + // first_player_hash
         32 + // first_player_escrow_address
-        (1 + 1 + 1) + // first_player_choice
+        (1 + 1) + // first_player_choice
         (1 + 8) + // first_player_revealed_at
 
         (1 + 32) + // second_player
         (1 + 32) + // second_player_hash
         (1 + 32) + // second_player_escrow_address
-        (1 + 1 + 1) + // second_player_choice
+        (1 + 1) + // second_player_choice
         (1 + 8)+ // second_player_revealed_at
 
         (1 + 32) + // winner
@@ -71,9 +71,9 @@ impl Game {
         (1 + 8) + // amount_burned
         (1 + 8) + // drawn_at
 
-        (1 + 1) + // game_state
+        (1) + // game_state
         8 + // created_at
-        253 // padding
+        256 // padding
     }
 
     pub fn new(
