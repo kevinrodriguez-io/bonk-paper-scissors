@@ -112,7 +112,7 @@ export const GameCard = ({
               )}
             </dd>
           </div>
-          <div className="bg-white px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          {/* <div className="bg-white px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt className="text-sm font-medium text-gray-500">P1 choice</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
               {firstPlayerChoice ?? "None"}
@@ -123,7 +123,7 @@ export const GameCard = ({
             <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
               {secondPlayerChoice ?? "None"}
             </dd>
-          </div>
+          </div> */}
           <div className="bg-white px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt className="text-sm font-medium text-gray-500">Status</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
@@ -177,14 +177,14 @@ export const GameCard = ({
               )}
             </dd>
           </div>
-          <div className="bg-white px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          {/* <div className="bg-white px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt className="text-sm font-medium text-gray-500">Created at</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
               {DateTime.fromSeconds(createdAt.toNumber()).toFormat(
                 "yyyy-MM-dd HH:mm:ss"
               )}
             </dd>
-          </div>
+          </div> */}
         </dl>
 
         {showGoToGame ? (
