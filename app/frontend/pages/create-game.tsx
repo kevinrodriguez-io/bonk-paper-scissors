@@ -55,7 +55,6 @@ const CreateGame: NextPage = () => {
     (async () => {
       toast(() => <SpinnerToast>Creating game...</SpinnerToast>);
       const n = amount * 10 ** mintDetails.data!.decimals;
-      console.log({ n });
       const theBN = new BN(
         n.toLocaleString("fullwide", { useGrouping: false })
       );
