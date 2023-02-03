@@ -4,6 +4,8 @@ import { DateTime } from "luxon";
 import cx from "classnames";
 import { formatNumber, hideMiddle } from "../lib/string";
 import { useMintDetails } from "../hooks/useMint";
+import { useHeliusNames } from "../hooks/useHeliusNames";
+import { Spinner } from "./Spinner";
 
 type GameCardProps = {
   gameId: string;
@@ -37,6 +39,10 @@ export const GameCard = ({
   secondPlayerChoice,
 }: GameCardProps) => {
   const { data } = useMintDetails(mint.toBase58());
+  const firstPlayerNames = useHeliusNames(firstPlayer);
+  const secondPlayerNames = useHeliusNames(secondPlayer);
+  const winnerNames = useHeliusNames(winner);
+  console.log({ firstPlayerNames, secondPlayerNames });
   // Create a link to the solana explorer with the pubkey of the game
   const explorerLink = `https://explorer.solana.com/address/${pubKey.toBase58()}`;
   const firstPlayerLink = `https://explorer.solana.com/address/${firstPlayer.toBase58()}`;
@@ -72,9 +78,20 @@ export const GameCard = ({
                 href={firstPlayerLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:underline"
+                className="hover:underline flex"
               >
                 {hideMiddle(firstPlayer.toBase58())}
+                {firstPlayerNames.isLoading ? (
+                  <div className="ml-2">
+                    <Spinner />
+                  </div>
+                ) : firstPlayerNames.data?.length ? (
+                  <span className="ml-2 text-gray-500">
+                    {firstPlayerNames.data[0]}
+                  </span>
+                ) : (
+                  ""
+                )}
               </a>
             </dd>
           </div>
@@ -86,9 +103,20 @@ export const GameCard = ({
                   href={secondPlayerLink!}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:underline"
+                  className="hover:underline flex"
                 >
                   {hideMiddle(secondPlayer.toBase58())}
+                  {secondPlayerNames.isLoading ? (
+                    <div className="ml-2">
+                      <Spinner />
+                    </div>
+                  ) : secondPlayerNames.data?.length ? (
+                    <span className="ml-2 text-gray-500">
+                      {secondPlayerNames.data[0]}
+                    </span>
+                  ) : (
+                    ""
+                  )}
                 </a>
               ) : (
                 "None"
@@ -103,9 +131,20 @@ export const GameCard = ({
                   href={winnerLink!}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:underline"
+                  className="hover:underline flex"
                 >
                   {hideMiddle(winner.toBase58())}
+                  {winnerNames.isLoading ? (
+                    <div className="ml-2">
+                      <Spinner />
+                    </div>
+                  ) : winnerNames.data?.length ? (
+                    <span className="ml-2 text-gray-500">
+                      {winnerNames.data[0]}
+                    </span>
+                  ) : (
+                    ""
+                  )}
                 </a>
               ) : (
                 "To be defined"
@@ -130,7 +169,7 @@ export const GameCard = ({
               {status}
             </dd>
           </div>
-          <div className="bg-white px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          {/* <div className="bg-white px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt className="text-sm font-medium text-gray-500">Mint</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
               <a
@@ -142,7 +181,7 @@ export const GameCard = ({
                 {hideMiddle(mint.toBase58())}
               </a>
             </dd>
-          </div>
+          </div> */}
           <div className="bg-white px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt className="text-sm font-medium text-gray-500">Amount</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
