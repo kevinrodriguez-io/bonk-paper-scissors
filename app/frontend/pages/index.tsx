@@ -57,50 +57,53 @@ const Home: NextPage = () => {
           ) : null}
           {filteredData?.length ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
-              {filteredData.map((game) => (
-                <>
-                  <GameCard
-                    className="bg-gray-100 shadow-xl shadow-primary-900 border-primary-500 border-solid border-x-2 border-y-2"
-                    key={game.publicKey.toBase58()}
-                    showGoToGame
-                    winner={game.account.winner ?? undefined}
-                    firstPlayerChoice={
-                      game.account.firstPlayerChoice
-                        ? capitalize(
-                            splitLowerCaseItemIntoWords(
-                              getValueFromEnumVariant(
-                                game.account.firstPlayerChoice
+              {filteredData
+                .slice()
+                .sort((a, b) => a.account.createdAt.cmp(b.account.createdAt))
+                .map((game) => (
+                  <>
+                    <GameCard
+                      className="bg-gray-100 shadow-xl shadow-primary-900 border-primary-500 border-solid border-x-2 border-y-2"
+                      key={game.publicKey.toBase58()}
+                      showGoToGame
+                      winner={game.account.winner ?? undefined}
+                      firstPlayerChoice={
+                        game.account.firstPlayerChoice
+                          ? capitalize(
+                              splitLowerCaseItemIntoWords(
+                                getValueFromEnumVariant(
+                                  game.account.firstPlayerChoice
+                                )
                               )
                             )
-                          )
-                        : undefined
-                    }
-                    secondPlayerChoice={
-                      game.account.secondPlayerChoice
-                        ? capitalize(
-                            splitLowerCaseItemIntoWords(
-                              getValueFromEnumVariant(
-                                game.account.secondPlayerChoice
+                          : undefined
+                      }
+                      secondPlayerChoice={
+                        game.account.secondPlayerChoice
+                          ? capitalize(
+                              splitLowerCaseItemIntoWords(
+                                getValueFromEnumVariant(
+                                  game.account.secondPlayerChoice
+                                )
                               )
                             )
-                          )
-                        : undefined
-                    }
-                    pubKey={game.publicKey}
-                    gameId={game.account.gameId}
-                    createdAt={game.account.createdAt}
-                    firstPlayer={game.account.firstPlayer}
-                    mint={game.account.mint}
-                    amountToMatch={game.account.amountToMatch}
-                    secondPlayer={game.account.secondPlayer ?? undefined}
-                    status={capitalize(
-                      splitLowerCaseItemIntoWords(
-                        getValueFromEnumVariant(game.account.gameState)
-                      )
-                    )}
-                  />
-                </>
-              ))}
+                          : undefined
+                      }
+                      pubKey={game.publicKey}
+                      gameId={game.account.gameId}
+                      createdAt={game.account.createdAt}
+                      firstPlayer={game.account.firstPlayer}
+                      mint={game.account.mint}
+                      amountToMatch={game.account.amountToMatch}
+                      secondPlayer={game.account.secondPlayer ?? undefined}
+                      status={capitalize(
+                        splitLowerCaseItemIntoWords(
+                          getValueFromEnumVariant(game.account.gameState)
+                        )
+                      )}
+                    />
+                  </>
+                ))}
             </div>
           ) : (
             <NoGamesCard />
