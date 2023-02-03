@@ -8,7 +8,7 @@ export const useHeliusNames = (address?: web3.PublicKey) =>
     async ([_, k]) => (k ? getNames(new web3.PublicKey(k)) : []),
     {
       revalidateOnFocus: false,
-      revalidateOnMount: false,
+      revalidateOnMount: true,
       revalidateOnReconnect: false,
       refreshWhenOffline: false,
       refreshWhenHidden: false,
