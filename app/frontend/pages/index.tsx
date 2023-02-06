@@ -3,6 +3,7 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import { useState } from "react";
 import { useDebounce } from "usehooks-ts";
+import cx from "classnames";
 
 import { GameCard } from "../components/GameCard";
 import { Layout } from "../components/Layout";
@@ -18,6 +19,9 @@ const Home: NextPage = () => {
   const { data, error, isLoading } = useGamesByStatuses([
     "CreatedAndWaitingForStart",
     "StartedAndWaitingForReveal",
+    "FirstPlayerWon",
+    "SecondPlayerWon",
+    "Draw",
   ]);
   const filteredData = data?.filter((game) => {
     return game.account.gameId.includes(debouncedSearchCriteria);
@@ -60,12 +64,33 @@ const Home: NextPage = () => {
               {filteredData
                 .slice()
                 .sort((a, b) => a.account.createdAt.cmp(b.account.createdAt))
+                .slice()
+                .sort((a, b) => {
+                  if (a.account.winner && b.account.winner) {
+                    return 1;
+                  } else {
+                    return -1;
+                  }
+                })
                 .map((game) => (
                   <>
                     <GameCard
-                      className="bg-gray-100 shadow-xl shadow-primary-900 border-primary-500 border-solid border-x-2 border-y-2"
+                      className={cx(
+                        "bg-gray-100 shadow-xl border-solid border-x-2 border-y-2 hover:-translate-y-2",
+                        {
+                          "shadow-gray-900 border-gray-500 opacity-50 hover:opacity-100":
+                            !!game.account.winner,
+                          "shadow-primary-900 border-primary-500":
+                            !game.account.winner,
+                        }
+                      )}
                       key={game.publicKey.toBase58()}
                       showGoToGame
+                      goToGameClassName={
+                        game.account.winner
+                          ? "bg-gray-600 hover:bg-gray-700 focus:ring-gray-500"
+                          : undefined
+                      }
                       winner={game.account.winner ?? undefined}
                       firstPlayerChoice={
                         game.account.firstPlayerChoice

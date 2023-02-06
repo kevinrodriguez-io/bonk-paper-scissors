@@ -20,6 +20,7 @@ type GameCardProps = {
   firstPlayerChoice?: string;
   secondPlayerChoice?: string;
   showGoToGame?: boolean;
+  goToGameClassName?: string;
   className?: string;
 };
 
@@ -35,6 +36,7 @@ export const GameCard = ({
   amountToMatch,
   showGoToGame,
   className,
+  goToGameClassName,
   firstPlayerChoice,
   secondPlayerChoice,
 }: GameCardProps) => {
@@ -230,7 +232,10 @@ export const GameCard = ({
           <div className="flex flex-row justify-end">
             <Link
               href={`/game/${pubKey.toBase58()}`}
-              className="m-4 inline-flex justify-center rounded-md border border-transparent bg-primary-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              className={cx(
+                "m-4 inline-flex justify-center rounded-md border border-transparent bg-primary-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2",
+                goToGameClassName
+              )}
             >
               Go to game
             </Link>
