@@ -1,2 +1,2 @@
-*.ts linguist-detectable=true
-*.tsx linguist-detectable=true
+* linguist-vendored
+*.rs linguist-vendored=false
